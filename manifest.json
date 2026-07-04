@@ -1,0 +1,14 @@
+{
+  "name": "GO! House Mensajería",
+  "short_name": "GoHouse",
+  "description": "Pide un domicilio y haz seguimiento en vivo",
+  "start_url": "./gohouse-cliente.html",
+  "display": "standalone",
+  "background_color": "#0F1B2B",
+  "theme_color": "#0F1B2B",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
