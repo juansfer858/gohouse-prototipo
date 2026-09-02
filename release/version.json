@@ -1,6 +1,6 @@
 {
-  "version": "2026.09.02-white-label.6",
-  "published_at": "2026-09-02T19:39:00Z",
+  "version": "2026.09.02-white-label.7",
+  "published_at": "2026-09-02T19:45:00Z",
   "status": "release",
   "files": [
     {
@@ -16,7 +16,7 @@
     {
       "path": "web/gohouse-branding.js",
       "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-4/web/gohouse-branding.js",
-      "sha256": "1a17bb589ba79154399fb69e28a591c7a14bdaec6bda964839df938f8c0239ad"
+      "sha256": "e21793f46f7c096e785655e8f3e7694f09db763a1a336a639822cda118029608"
     },
     {
       "path": "web/panel/index.html",
