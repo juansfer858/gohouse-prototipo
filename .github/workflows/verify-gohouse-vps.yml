@@ -60,13 +60,26 @@ jobs:
           grep -q "brandName: 'Domicilios'" /tmp/branding.js
           grep -q 'cleanVisibleRoute' /tmp/branding.js
 
-      - name: Verify QR center
+      - name: Verify QR button and center
         run: |
           set -euo pipefail
           curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/gohouse-qr.js >/tmp/qr.js
-          grep -q 'QR de pedidos' /tmp/qr.js
-          grep -q 'Descargar historia' /tmp/qr.js
-          curl --fail --show-error --silent --max-time 15 \
             https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-wrapper.html
-          grep -q 'gohouse-qr.js' /tmp/panel-wrapper.html
+          grep -q 'tab-qr-public' /tmp/panel-wrapper.html
+          grep -q "location.href=\\'/qr/\\'" /tmp/panel-wrapper.html
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/qr/ >/tmp/qr-center.html
+          grep -q 'QR de pedidos' /tmp/qr-center.html
+          grep -q 'Descargar historia' /tmp/qr-center.html
+          grep -q 'Imprimir afiche' /tmp/qr-center.html
+
+      - name: Verify rendered QR tab
+        run: |
+          set -euo pipefail
+          if command -v google-chrome >/dev/null 2>&1; then
+            timeout 25s google-chrome --headless --disable-gpu --no-sandbox --dump-dom \
+              https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/chrome.err || true
+            grep -q 'id="tab-qr-public"' /tmp/panel-dom.html
+          else
+            echo 'google-chrome no disponible; verificación estática ya pasó.'
+          fi
