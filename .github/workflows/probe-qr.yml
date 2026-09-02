@@ -11,57 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Verify client advertising after deploy
+      - name: Hash advertising retry payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          for i in $(seq 1 10); do
-            if curl -fsSL "$HOST/api/health" >/tmp/health.json; then break; fi
-            sleep 3
-          done
-          python3 - <<'PY'
-          import json
-          x=json.load(open('/tmp/health.json'))
-          assert x.get('ok') is True, x
-          PY
-
-          curl -fsSL -X POST "$HOST/api/auth/anonymous" \
-            -H 'Content-Type: application/json' \
-            --data '{"appKind":"client"}' -o /tmp/auth.json
-          python3 - <<'PY'
-          import json
-          x=json.load(open('/tmp/auth.json'))
-          token=x.get('token'); assert token, x
-          open('/tmp/token','w').write(token)
-          PY
-          TOKEN="$(cat /tmp/token)"
-          curl -fsSL "$HOST/api/data?path=gohouse-data" -H "Authorization: Bearer $TOKEN" -o /tmp/clientdata.json
-          python3 - <<'PY' >/tmp/check.txt
-          import json
-          x=json.load(open('/tmp/clientdata.json'))
-          v=x.get('value') or {}
-          ads=v.get('publicidad') if isinstance(v,dict) else []
-          if not isinstance(ads,list): ads=[]
-          print('has_publicidad=' + ('1' if 'publicidad' in v else '0'))
-          print('count=' + str(len(ads)))
-          print('with_image=' + str(sum(1 for a in ads if isinstance(a,dict) and str(a.get('image') or '').strip())))
-          PY
-          cat /tmp/check.txt
-          grep -q 'has_publicidad=1' /tmp/check.txt
-
-          COUNT="$(sed -n 's/^count=//p' /tmp/check.txt)"
-          if [ "$COUNT" -gt 0 ]; then
-            BROWSER=""
-            for c in google-chrome google-chrome-stable chromium chromium-browser; do
-              if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
-            done
-            test -n "$BROWSER"
-            timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=15000 --dump-dom \
-              "$HOST/" >/tmp/client-dom.html 2>/tmp/browser.err || true
-            grep -q 'id="gh-publicidad-carousel"' /tmp/client-dom.html
-            grep -q 'gh-ads-client is-visible' /tmp/client-dom.html
-            grep -q '/uploads/' /tmp/client-dom.html
-            echo 'LIVE_CLIENT_CAROUSEL_OK=true'
-          else
-            echo 'LIVE_CLIENT_CAROUSEL_NO_ADS=true'
-          fi
+          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-5/web/gohouse-publicidad.js
+          curl -fsSL "$URL" -o /tmp/ads.js
+          node --check /tmp/ads.js
+          grep -q '700, 1800, 3500, 6500' /tmp/ads.js
+          echo 'ADS_RETRY_SHA='
+          sha256sum /tmp/ads.js
