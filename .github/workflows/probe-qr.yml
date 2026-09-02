@@ -11,12 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Hash advertising retry payload
+      - name: Inspect live app shell baselines
         run: |
           set -euo pipefail
-          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-5/web/gohouse-publicidad.js
-          curl -fsSL "$URL" -o /tmp/ads.js
-          node --check /tmp/ads.js
-          grep -q '700, 1800, 3500, 6500' /tmp/ads.js
-          echo 'ADS_RETRY_SHA='
-          sha256sum /tmp/ads.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          curl -fsSL "$HOST/gohouse-cliente.html" -o /tmp/client.html
+          curl -fsSL "$HOST/gohouse-panel.html" -o /tmp/panel.html
+          curl -fsSL "$HOST/gohouse-domiciliarios.html" -o /tmp/driver.html
+          echo 'CLIENT'; wc -c /tmp/client.html; sha256sum /tmp/client.html
+          echo 'PANEL'; wc -c /tmp/panel.html; sha256sum /tmp/panel.html
+          echo 'DRIVER'; wc -c /tmp/driver.html; sha256sum /tmp/driver.html
+          echo 'CHAT_CLIENT'; grep -nE 'chat-soporte-btn|enviarMensajeChatSoporte|chatsClientes' /tmp/client.html | head -20 || true
+          echo 'CHAT_PANEL'; grep -nE 'abrirChatConCliente|chatsClientes|monitorearCambiosChat' /tmp/panel.html | head -30 || true
