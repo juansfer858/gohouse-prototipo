@@ -73,7 +73,19 @@ jobs:
           grep -q 'Descargar historia' /tmp/qr-center.html
           grep -q 'Imprimir afiche' /tmp/qr-center.html
 
-      - name: Verify rendered QR tab
+      - name: Verify advertising module
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/gohouse-publicidad.js >/tmp/ads.js
+          node --check /tmp/ads.js
+          grep -q 'gh-publicidad-carousel' /tmp/ads.js
+          grep -q 'Guardar publicidad' /tmp/ads.js
+          grep -q 'publicidad' /tmp/ads.js
+          grep -q 'gohouse-publicidad.js' /tmp/branding.js
+          grep -q 'tab-publicidad' /tmp/panel-wrapper.html
+
+      - name: Verify rendered panel and client extensions
         run: |
           set -euo pipefail
           BROWSER=""
@@ -81,9 +93,13 @@ jobs:
             if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
           done
           if [ -n "$BROWSER" ]; then
-            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom \
-              https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/browser.err || true
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom \
+              https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
             grep -q 'id="tab-qr-public"' /tmp/panel-dom.html
+            grep -q 'id="tab-publicidad"' /tmp/panel-dom.html
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom \
+              https://domicilios-llanos.vantixgc.com/ >/tmp/client-dom.html 2>/tmp/client-browser.err || true
+            grep -q 'id="gh-publicidad-carousel"' /tmp/client-dom.html
           else
             echo 'Browser headless no disponible; verificaciones HTTP ya pasaron.'
           fi
