@@ -59,3 +59,14 @@ jobs:
             https://domicilios-llanos.vantixgc.com/gohouse-branding.js >/tmp/branding.js
           grep -q "brandName: 'Domicilios'" /tmp/branding.js
           grep -q 'cleanVisibleRoute' /tmp/branding.js
+
+      - name: Verify QR center
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/gohouse-qr.js >/tmp/qr.js
+          grep -q 'QR de pedidos' /tmp/qr.js
+          grep -q 'Descargar historia' /tmp/qr.js
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-wrapper.html
+          grep -q 'gohouse-qr.js' /tmp/panel-wrapper.html
