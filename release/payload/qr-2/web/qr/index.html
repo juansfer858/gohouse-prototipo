@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>QR de pedidos</title>
+<meta name="theme-color" content="#E8863A">
+<style>
+:root{--primary:#E8863A;--accent:#34C6C0;--bg:#16231F;--surface:#1E312B;--line:#33473D;--text:#F3EFE6;--dim:#A9B8B0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+header{border-bottom:1px solid var(--line);padding:18px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:var(--bg);z-index:5}
+.logo{width:52px;height:52px;border-radius:14px;background:var(--surface);object-fit:contain;display:none}.headtext{flex:1}.headtext h1{margin:0;font-family:Georgia,serif;font-size:1.45rem}.headtext div{font-size:.78rem;color:var(--dim);margin-top:3px}
+button,.btn{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}.primary{background:var(--primary);color:#1b120b;border-color:transparent}
+main{max-width:1120px;margin:auto;padding:22px}.note{border:1px dashed var(--line);border-radius:10px;padding:13px 15px;color:var(--dim);margin-bottom:18px}.grid{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:24px}.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}.qrwrap{background:white;border-radius:18px;padding:22px;display:flex;justify-content:center;align-items:center;min-height:340px}#qr canvas,#qr img{max-width:100%;height:auto}h2{font-family:Georgia,serif;margin:0 0 8px}.subtitle{color:var(--dim);margin-bottom:18px}label{font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}input{width:100%;margin-top:5px;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:11px;border-radius:8px;font-family:ui-monospace,monospace}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.footnote{font-size:.82rem;color:var(--dim);margin-top:16px;line-height:1.4}@media(max-width:760px){.grid{grid-template-columns:1fr}header{align-items:flex-start}.btn-back{padding:8px 10px}main{padding:15px}.actions button{flex:1 1 46%}}
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<header><img id="brand-logo" class="logo" alt=""><div class="headtext"><h1 id="brand-name">Domicilios</h1><div>Centro de QR · pedidos directos</div></div><a class="btn btn-back" href="/panel/">← Volver al panel</a></header>
+<main>
+  <div class="note">Este QR abre la página pública de pedidos. Puedes cambiar nombre, logo y colores sin volver a imprimirlo mientras conserves el mismo dominio.</div>
+  <div class="grid">
+    <section class="card"><div class="qrwrap"><div id="qr"></div></div></section>
+    <section class="card"><h2>📱 QR de pedidos</h2><div class="subtitle">Para negocios, cajas, mostradores, volantes y estados de redes sociales.</div><label>Enlace público</label><input id="public-url" readonly><div class="actions"><button class="primary" id="regen">Crear / actualizar QR</button><button id="copy">🔗 Copiar enlace</button><button id="download">⬇️ Descargar QR</button><button id="story">📲 Descargar historia</button><button id="print">🖨️ Imprimir afiche</button></div><div class="footnote">La historia se genera en 1080 × 1920 px. El afiche está preparado para impresión A4.</div></section>
+  </div>
+</main>
+<script>
+const PUBLIC_URL=new URL('/',location.origin).href;
+let cfg={brandName:'Domicilios',primaryColor:'#E8863A',accentColor:'#34C6C0',logoUrl:''};
+const $=id=>document.getElementById(id);const safeColor=(v,d)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?v:d;
+function slug(){return String(cfg.brandName||'domicilios').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'domicilios'}
+async function loadBrand(){try{const r=await fetch('/api/public/config',{cache:'no-store'});if(r.ok)cfg={...cfg,...await r.json()}}catch{}cfg.brandName=String(cfg.brandName||'Domicilios').trim()||'Domicilios';cfg.primaryColor=safeColor(cfg.primaryColor,'#E8863A');cfg.accentColor=safeColor(cfg.accentColor,'#34C6C0');document.documentElement.style.setProperty('--primary',cfg.primaryColor);document.documentElement.style.setProperty('--accent',cfg.accentColor);$('brand-name').textContent=cfg.brandName;document.title=cfg.brandName+' — QR de pedidos';if(cfg.logoUrl){$('brand-logo').src=cfg.logoUrl;$('brand-logo').alt='Logo '+cfg.brandName;$('brand-logo').style.display='block'}}
+function waitQr(){return new Promise((resolve,reject)=>{let n=0;const t=setInterval(()=>{if(window.QRCode){clearInterval(t);resolve()}else if(++n>50){clearInterval(t);reject(new Error('No se pudo iniciar el generador QR.'))}},100)})}
+async function renderQr(){const box=$('qr');box.innerHTML='<div style="color:#555">Generando…</div>';try{await waitQr();box.innerHTML='';new QRCode(box,{text:PUBLIC_URL,width:296,height:296,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H})}catch(e){box.innerHTML='<div style="color:#8d2727;text-align:center">'+e.message+'</div>'}}
+function sourceCanvas(){const box=$('qr'),c=box.querySelector('canvas');if(c)return c;const img=box.querySelector('img');if(img){const x=document.createElement('canvas');x.width=img.naturalWidth||296;x.height=img.naturalHeight||296;x.getContext('2d').drawImage(img,0,0,x.width,x.height);return x}throw new Error('Primero genera el QR.')}
+function saveCanvas(c,name){c.toBlob(b=>{if(!b)return;const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)},'image/png')}
+function rounded(ctx,x,y,w,h,r,fill){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fillStyle=fill;ctx.fill()}
+function downloadQr(){try{const src=sourceCanvas(),out=document.createElement('canvas');out.width=1200;out.height=1450;const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,out.width,out.height);x.textAlign='center';x.fillStyle='#151515';x.font='700 68px Arial';x.fillText(cfg.brandName,600,105);x.font='600 42px Arial';x.fillText('Escanea y pide tu domicilio',600,175);x.drawImage(src,100,230,1000,1000);x.font='32px Arial';x.fillStyle='#444';x.fillText(location.host,600,1325);saveCanvas(out,slug()+'-qr-pedidos.png')}catch(e){alert(e.message)}}
+function story(){try{const src=sourceCanvas(),out=document.createElement('canvas');out.width=1080;out.height=1920;const x=out.getContext('2d'),g=x.createLinearGradient(0,0,1080,1920);g.addColorStop(0,cfg.primaryColor);g.addColorStop(1,cfg.accentColor);x.fillStyle=g;x.fillRect(0,0,1080,1920);x.textAlign='center';x.fillStyle='#fff';x.font='700 78px Arial';x.fillText(cfg.brandName.slice(0,24),540,180);x.font='600 48px Arial';x.fillText('Pide tu domicilio en segundos',540,350);rounded(x,110,500,860,980,46,'#fff');x.drawImage(src,190,600,700,700);x.fillStyle='#151515';x.font='700 44px Arial';x.fillText('Escanea el código',540,1390);x.fillStyle='#fff';x.font='600 34px Arial';x.fillText(location.host,540,1710);saveCanvas(out,slug()+'-historia-qr.png')}catch(e){alert(e.message)}}
+async function copyLink(){try{await navigator.clipboard.writeText(PUBLIC_URL);alert('Enlace copiado.')}catch{$('public-url').select();document.execCommand('copy');alert('Enlace copiado.')}}
+function printPoster(){try{const img=sourceCanvas().toDataURL('image/png'),w=window.open('','_blank');if(!w)return alert('Permite ventanas emergentes para imprimir.');const brand=cfg.brandName.replace(/[<>&]/g,'');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QR</title><style>@page{size:A4;margin:12mm}body{font-family:Arial;margin:0}.sheet{min-height:270mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:2px solid #111;border-radius:18px;padding:18mm;box-sizing:border-box}h1{font-size:34pt;margin:0 0 8mm}.lead{font-size:20pt;font-weight:700;margin-bottom:10mm}.qr{width:145mm;height:145mm}.url{font-size:13pt;margin-top:8mm}.tip{font-size:11pt;color:#444;margin-top:5mm}@media print{button{display:none}}</style></head><body><div class="sheet"><h1>'+brand+'</h1><div class="lead">Escanea y pide tu domicilio</div><img class="qr" src="'+img+'"><div class="url">'+PUBLIC_URL+'</div><div class="tip">Abre la cámara de tu celular y apunta al código.</div><button onclick="print()" style="margin-top:10mm;padding:10px 18px">Imprimir</button></div><script>setTimeout(()=>print(),350)<\/script></body></html>');w.document.close()}catch(e){alert(e.message)}}
+(async()=>{await loadBrand();$('public-url').value=PUBLIC_URL;await renderQr();$('regen').onclick=renderQr;$('copy').onclick=copyLink;$('download').onclick=downloadQr;$('story').onclick=story;$('print').onclick=printPoster})();
+</script>
+</body>
+</html>
