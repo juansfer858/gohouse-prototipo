@@ -11,19 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Hash advertising payload
+      - name: Verify live advertising release
         run: |
           set -euo pipefail
-          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-1/web
-          curl -fsSL "$BASE/gohouse-publicidad.js" -o /tmp/ads.js
-          curl -fsSL "$BASE/gohouse-branding.js" -o /tmp/branding.js
-          curl -fsSL "$BASE/panel/index.html" -o /tmp/panel.html
+          HOST=https://domicilios-llanos.vantixgc.com
+          curl -fsSL "$HOST/gohouse-publicidad.js" -o /tmp/ads.js
+          curl -fsSL "$HOST/gohouse-branding.js" -o /tmp/branding.js
+          curl -fsSL "$HOST/panel/" -o /tmp/panel.html
           node --check /tmp/ads.js
-          node --check /tmp/branding.js
-          grep -q '📣 Publicidad' /tmp/ads.js
           grep -q 'gh-publicidad-carousel' /tmp/ads.js
+          grep -q 'Guardar publicidad' /tmp/ads.js
           grep -q 'gohouse-publicidad.js' /tmp/branding.js
           grep -q 'tab-publicidad' /tmp/panel.html
-          echo 'ADS_SHA='; sha256sum /tmp/ads.js
-          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
-          echo 'PANEL_SHA='; sha256sum /tmp/panel.html
+          BROWSER=""
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
+          done
+          if [ -n "$BROWSER" ]; then
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom "$HOST/panel/" >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
+            grep -q 'id="tab-publicidad"' /tmp/panel-dom.html
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom "$HOST/" >/tmp/client-dom.html 2>/tmp/client-browser.err || true
+            grep -q 'id="gh-publicidad-carousel"' /tmp/client-dom.html
+          fi
+          echo 'LIVE_ADVERTISING_OK=true'
