@@ -11,14 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Hash panel advertising fix
+      - name: Verify live panel bridge and unified QR
         run: |
           set -euo pipefail
-          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-2/web/panel/index.html
-          curl -fsSL "$URL" -o /tmp/panel.html
+          sleep 25
+          HOST=https://domicilios-llanos.vantixgc.com
+          curl -fsSL "$HOST/panel/" -o /tmp/panel.html
           grep -q 'QR pedidos y operadores' /tmp/panel.html
           grep -q 'window.loadShared=async function' /tmp/panel.html
           grep -q 'window.saveShared=async function' /tmp/panel.html
-          grep -q 'tab-qr-public' /tmp/panel.html
-          echo 'PANEL_FIX_SHA='
-          sha256sum /tmp/panel.html
+          test "$(grep -o 'id="tab-qr-public"' /tmp/panel.html | wc -l)" -eq 0
+          grep -q 'id="tab-publicidad"' /tmp/panel.html
+          echo 'LIVE_PANEL_BRIDGE_OK=true'
