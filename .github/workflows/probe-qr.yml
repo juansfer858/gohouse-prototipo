@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Validate adaptive app shell payload
+      - name: Validate cumulative app shell payload
         run: |
           set -euo pipefail
           BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery
-          curl -fsSL "$BASE/release/payload/app-shell-1/web/gohouse-app-shell.js" -o /tmp/shell.js
+          curl -fsSL "$BASE/release/payload/app-shell-2/web/gohouse-app-shell.js" -o /tmp/shell.js
           curl -fsSL "$BASE/release/payload/app-shell-1/web/gohouse-branding.js" -o /tmp/branding.js
           curl -fsSL "$BASE/release/payload/publicidad-5/web/gohouse-publicidad.js" -o /tmp/ads.js
           node --check /tmp/shell.js
@@ -25,7 +25,7 @@ jobs:
           grep -q 'font-size:16px!important' /tmp/shell.js
           grep -q 'clienteNombre' /tmp/shell.js
           grep -q 'tab-mensajes' /tmp/shell.js
-          grep -q 'chatsClientes' /tmp/shell.js
+          grep -q "view.style.display='none'" /tmp/shell.js
           grep -q 'gohouse-app-shell.js' /tmp/branding.js
           grep -q '700, 1800, 3500, 6500' /tmp/ads.js
           echo 'SHELL_SHA='; sha256sum /tmp/shell.js
