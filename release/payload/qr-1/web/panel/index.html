@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Panel</title>
+  <style>html,body{margin:0;min-height:100%;background:#0f1b2b}body{visibility:hidden}</style>
+</head>
+<body>
+<script>
+(async()=>{
+  try{
+    const res=await fetch('/gohouse-panel.html',{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    let html=await res.text();
+    html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/">');
+    html=html.replace(/<\/body>/i,'<script src="/gohouse-qr.js" defer><\\/script></body>');
+    document.open(); document.write(html); document.close();
+  }catch(e){
+    document.body.style.visibility='visible';
+    document.body.innerHTML='<main style="font:16px system-ui;color:#fff;padding:32px">No se pudo abrir el panel. Intenta nuevamente.</main>';
+  }
+})();
+</script>
+</body>
+</html>
