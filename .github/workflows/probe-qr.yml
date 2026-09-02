@@ -11,30 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Probe raw payload hashes
-        run: |
-          set -euo pipefail
-          curl -fsSL https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/qr-2/web/panel/index.html -o /tmp/panel-payload
-          curl -fsSL https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/qr-2/web/qr/index.html -o /tmp/qr-payload
-          echo 'PANEL_SHA='
-          sha256sum /tmp/panel-payload
-          echo 'QR_SHA='
-          sha256sum /tmp/qr-payload
-          echo 'PANEL_BYTES='
-          wc -c /tmp/panel-payload
-          echo 'QR_BYTES='
-          wc -c /tmp/qr-payload
-
-      - name: Probe production files
+      - name: Probe production after white-label 11
         run: |
           set -u
-          echo '=== PANEL WRAPPER STATUS ==='
-          curl -sS -o /tmp/panel -w '%{http_code}\n' https://domicilios-llanos.vantixgc.com/panel/
-          echo 'tab-qr-public:'
+          echo '=== PANEL WRAPPER ==='
+          curl -sS -o /tmp/panel -w 'HTTP=%{http_code}\n' https://domicilios-llanos.vantixgc.com/panel/
           grep -n 'tab-qr-public' /tmp/panel || true
-          echo '/qr/ refs:'
           grep -n '/qr/' /tmp/panel || true
-          echo '=== QR CENTER STATUS ==='
-          curl -sS -o /tmp/qr -w '%{http_code}\n' https://domicilios-llanos.vantixgc.com/qr/
-          echo 'QR de pedidos:'
-          grep -n 'QR de pedidos' /tmp/qr | head -3 || true
+          echo '=== QR CENTER ==='
+          curl -sS -o /tmp/qr -w 'HTTP=%{http_code}\n' https://domicilios-llanos.vantixgc.com/qr/
+          grep -n 'QR de pedidos' /tmp/qr | head -5 || true
+          grep -n 'Descargar historia' /tmp/qr | head -5 || true
+          grep -n 'Imprimir afiche' /tmp/qr | head -5 || true
+          echo '=== PANEL SOURCE ==='
+          sed -n '1,70p' /tmp/panel
