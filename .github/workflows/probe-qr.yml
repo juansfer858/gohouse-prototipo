@@ -11,17 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Probe production after white-label 11
+      - name: Verify rendered QR button
         run: |
-          set -u
-          echo '=== PANEL WRAPPER ==='
-          curl -sS -o /tmp/panel -w 'HTTP=%{http_code}\n' https://domicilios-llanos.vantixgc.com/panel/
-          grep -n 'tab-qr-public' /tmp/panel || true
-          grep -n '/qr/' /tmp/panel || true
-          echo '=== QR CENTER ==='
-          curl -sS -o /tmp/qr -w 'HTTP=%{http_code}\n' https://domicilios-llanos.vantixgc.com/qr/
-          grep -n 'QR de pedidos' /tmp/qr | head -5 || true
-          grep -n 'Descargar historia' /tmp/qr | head -5 || true
-          grep -n 'Imprimir afiche' /tmp/qr | head -5 || true
-          echo '=== PANEL SOURCE ==='
-          sed -n '1,70p' /tmp/panel
+          set -euo pipefail
+          BROWSER=""
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
+          done
+          test -n "$BROWSER"
+          timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom \
+            https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/browser.err || true
+          grep -n 'id="tab-qr-public"' /tmp/panel-dom.html
+          grep -n 'QR de pedidos' /tmp/panel-dom.html | head -5
+          echo 'RENDERED_QR_BUTTON_OK=true'
