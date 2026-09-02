@@ -1,0 +1,1 @@
+QR de pedidos marca blanca: descarga, impresión e historia vertical.
