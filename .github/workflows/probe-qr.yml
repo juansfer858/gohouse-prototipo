@@ -9,25 +9,71 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 8
     steps:
-      - name: Validate cumulative app shell payload
+      - name: Wait for white-label 17 and verify app behavior
         run: |
           set -euo pipefail
-          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery
-          curl -fsSL "$BASE/release/payload/app-shell-2/web/gohouse-app-shell.js" -o /tmp/shell.js
-          curl -fsSL "$BASE/release/payload/app-shell-1/web/gohouse-branding.js" -o /tmp/branding.js
-          curl -fsSL "$BASE/release/payload/publicidad-5/web/gohouse-publicidad.js" -o /tmp/ads.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          EXPECT=c071af707aff6cef21f7edd12a66b752dc58a539ac7ca17ae7c414f396ed5f9d
+          READY=0
+          for attempt in $(seq 1 24); do
+            if curl -fsSL "$HOST/gohouse-app-shell.js" -o /tmp/shell.js 2>/dev/null; then
+              GOT="$(sha256sum /tmp/shell.js | awk '{print $1}')"
+              echo "attempt=$attempt shell_sha=$GOT"
+              if [ "$GOT" = "$EXPECT" ]; then READY=1; break; fi
+            fi
+            sleep 15
+          done
+          test "$READY" -eq 1
           node --check /tmp/shell.js
-          node --check /tmp/branding.js
-          node --check /tmp/ads.js
           grep -q 'interactive-widget=resizes-content' /tmp/shell.js
           grep -q 'font-size:16px!important' /tmp/shell.js
           grep -q 'clienteNombre' /tmp/shell.js
+          grep -q 'clienteCelular' /tmp/shell.js
           grep -q 'tab-mensajes' /tmp/shell.js
-          grep -q "view.style.display='none'" /tmp/shell.js
+          grep -q 'chatsClientes' /tmp/shell.js
+
+          curl -fsSL "$HOST/gohouse-branding.js" -o /tmp/branding.js
           grep -q 'gohouse-app-shell.js' /tmp/branding.js
+          curl -fsSL "$HOST/gohouse-publicidad.js" -o /tmp/ads.js
           grep -q '700, 1800, 3500, 6500' /tmp/ads.js
-          echo 'SHELL_SHA='; sha256sum /tmp/shell.js
-          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
-          echo 'ADS_SHA='; sha256sum /tmp/ads.js
+
+          curl -fsSL "$HOST/api/health" -o /tmp/health.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/health.json'))
+          assert x.get('ok') is True and x.get('db') is True, x
+          PY
+
+          for app in client panel driver; do
+            curl -fsSL "$HOST/api/manifest.webmanifest?app=$app" -o "/tmp/$app.json"
+            APP="$app" python3 - <<'PY'
+          import json,os
+          x=json.load(open('/tmp/'+os.environ['APP']+'.json'))
+          assert x.get('display') == 'standalone', x
+          assert str(x.get('start_url','')).startswith('/'), x
+          PY
+          done
+
+          BROWSER=""
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
+          done
+          test -n "$BROWSER"
+
+          timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --window-size=390,844 --virtual-time-budget=9000 --dump-dom \
+            "$HOST/panel/" >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
+          grep -q 'id="gohouse-app-shell-style"' /tmp/panel-dom.html
+          grep -q 'id="tab-mensajes"' /tmp/panel-dom.html
+          grep -q 'interactive-widget=resizes-content' /tmp/panel-dom.html
+
+          timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --window-size=390,844 --virtual-time-budget=9000 --dump-dom \
+            "$HOST/" >/tmp/client-dom.html 2>/tmp/client-browser.err || true
+          grep -q 'id="gohouse-app-shell-style"' /tmp/client-dom.html
+          grep -q 'interactive-widget=resizes-content' /tmp/client-dom.html
+
+          echo 'LIVE_APP_SHELL_OK=true'
+          echo 'LIVE_PANEL_MESSAGES_OK=true'
+          echo 'LIVE_PWA_STANDALONE_OK=true'
+          echo 'LIVE_KEYBOARD_ZOOM_GUARD_OK=true'
