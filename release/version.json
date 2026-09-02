@@ -1,6 +1,8 @@
 {
   "version": "2026.09.02-white-label.3",
-  "sha256": "73ebac648ab5a9110ce495d7dde51f330c79164a11afb879ad911682c2c2be2b",
-  "published_at": "2026-09-02T18:30:00Z",
-  "status": "installed-baseline"
+  "published_at": "2026-09-02T18:40:00Z",
+  "status": "installed-baseline",
+  "files": [],
+  "delete": [],
+  "migrations": []
 }
