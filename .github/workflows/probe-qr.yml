@@ -1,0 +1,34 @@
+name: Probe QR production
+
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - '.github/workflows/probe-qr.yml'
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Probe production files
+        run: |
+          set -u
+          echo '=== PANEL WRAPPER STATUS ==='
+          curl -sS -o /tmp/panel -w '%{http_code}\n' https://domicilios-llanos.vantixgc.com/panel/
+          echo 'tab-qr-public:'
+          grep -n 'tab-qr-public' /tmp/panel || true
+          echo '/qr/ refs:'
+          grep -n '/qr/' /tmp/panel || true
+          echo '=== QR CENTER STATUS ==='
+          curl -sS -o /tmp/qr -w '%{http_code}\n' https://domicilios-llanos.vantixgc.com/qr/
+          echo 'QR de pedidos:'
+          grep -n 'QR de pedidos' /tmp/qr | head -3 || true
+          echo 'Descargar historia:'
+          grep -n 'Descargar historia' /tmp/qr | head -3 || true
+          echo 'Imprimir afiche:'
+          grep -n 'Imprimir afiche' /tmp/qr | head -3 || true
+          echo '=== PANEL FIRST 80 LINES ==='
+          sed -n '1,80p' /tmp/panel
+          echo '=== QR FIRST 40 LINES ==='
+          sed -n '1,40p' /tmp/qr
