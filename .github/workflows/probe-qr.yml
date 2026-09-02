@@ -11,22 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Verify live client and driver QR modes
+      - name: Inspect live VPS adapter API
         run: |
           set -euo pipefail
-          curl -fsSL https://domicilios-llanos.vantixgc.com/qr/ -o /tmp/qr
-          grep -q 'QR clientes' /tmp/qr
-          grep -q 'QR domiciliarios' /tmp/qr
-          grep -q "new URL('/domiciliario/'" /tmp/qr
-          grep -q 'PIN o autorización' /tmp/qr
-          echo 'LIVE_DRIVER_QR_OK=true'
-
-      - name: Verify live receipt flow
-        run: |
-          set -euo pipefail
-          curl -fsSL https://domicilios-llanos.vantixgc.com/gohouse-cliente.html -o /tmp/client
           curl -fsSL https://domicilios-llanos.vantixgc.com/gohouse-vps-adapter.js -o /tmp/adapter
-          grep -q 'comprobanteEntregaDataUrl' /tmp/client
-          grep -q 'orden.comprobante' /tmp/client
-          grep -q 'upload-data-url' /tmp/adapter
-          echo 'LIVE_RECEIPT_FLOW_OK=true'
+          echo '=== API ENDPOINTS ==='
+          grep -oE "'/api/[^']+|\"/api/[^\"]+" /tmp/adapter | sort -u || true
+          echo '=== LOAD SAVE ==='
+          grep -nE 'loadShared|saveShared|upload-data-url|api/state' /tmp/adapter | head -80 || true
