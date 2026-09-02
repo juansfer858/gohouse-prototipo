@@ -9,15 +9,60 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 7
     steps:
-      - name: Hash client advertising visibility fix
+      - name: Wait for client advertising view and verify carousel
         run: |
           set -euo pipefail
-          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-4/server/src/store.js
-          curl -fsSL "$URL" -o /tmp/store.js
-          node --check /tmp/store.js
-          grep -q 'publicAdvertising' /tmp/store.js
-          grep -q 'publicidad: publicAdvertising(g)' /tmp/store.js
-          echo 'STORE_SHA='
-          sha256sum /tmp/store.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          FOUND=0
+          COUNT=0
+          for attempt in $(seq 1 18); do
+            curl -fsSL -X POST "$HOST/api/auth/anonymous" \
+              -H 'Content-Type: application/json' \
+              --data '{"appKind":"client"}' -o /tmp/auth.json
+            python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/auth.json'))
+          token=x.get('token')
+          assert token, x
+          open('/tmp/token','w').write(token)
+          PY
+            TOKEN="$(cat /tmp/token)"
+            curl -fsSL "$HOST/api/data?path=gohouse-data" -H "Authorization: Bearer $TOKEN" -o /tmp/clientdata.json
+            python3 - <<'PY' >/tmp/check.txt
+          import json
+          x=json.load(open('/tmp/clientdata.json'))
+          v=x.get('value') or {}
+          print('has_publicidad=' + ('1' if 'publicidad' in v else '0'))
+          ads=v.get('publicidad') if isinstance(v,dict) else []
+          if not isinstance(ads,list): ads=[]
+          print('count=' + str(len(ads)))
+          print('with_image=' + str(sum(1 for a in ads if isinstance(a,dict) and str(a.get('image') or '').strip())))
+          PY
+            cat /tmp/check.txt
+            if grep -q 'has_publicidad=1' /tmp/check.txt; then
+              FOUND=1
+              COUNT="$(sed -n 's/^count=//p' /tmp/check.txt)"
+              break
+            fi
+            sleep 20
+          done
+          test "$FOUND" -eq 1
+          echo "CLIENT_PUBLICIDAD_COUNT=$COUNT"
+
+          if [ "$COUNT" -gt 0 ]; then
+            BROWSER=""
+            for c in google-chrome google-chrome-stable chromium chromium-browser; do
+              if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
+            done
+            test -n "$BROWSER"
+            timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=15000 --dump-dom \
+              "$HOST/" >/tmp/client-dom.html 2>/tmp/browser.err || true
+            grep -q 'id="gh-publicidad-carousel"' /tmp/client-dom.html
+            grep -q 'gh-ads-client is-visible' /tmp/client-dom.html
+            grep -q '/uploads/' /tmp/client-dom.html
+            echo 'LIVE_CLIENT_CAROUSEL_OK=true'
+          else
+            echo 'LIVE_CLIENT_CAROUSEL_NO_ADS=true'
+          fi
