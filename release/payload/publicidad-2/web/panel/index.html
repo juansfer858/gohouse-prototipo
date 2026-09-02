@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Panel</title>
+  <style>html,body{margin:0;min-height:100%;background:#0f1b2b}body{visibility:hidden}</style>
+</head>
+<body>
+<script>
+(async()=>{
+  try{
+    const res=await fetch('/gohouse-panel.html',{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    let html=await res.text();
+    html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/">');
+
+    // Unificamos los dos accesos QR: reutilizamos el botón nativo del panel.
+    const nativeQr=/(<button[^>]*id=["']tab-qr["'][^>]*>)[\s\S]*?(<\/button>)/i;
+    if(nativeQr.test(html)){
+      html=html.replace(nativeQr,'<button class="btn btn-ghost" id="tab-qr" style="flex:1;" onclick="location.href=\'/qr/\'">📱 QR pedidos y operadores</button>');
+    }
+    // Si una versión antigua ya trajera el botón público duplicado, lo eliminamos.
+    html=html.replace(/<button[^>]*id=["']tab-qr-public["'][^>]*>[\s\S]*?<\/button>/ig,'');
+
+    if(!/id=["']tab-publicidad["']/i.test(html)){
+      const adsButton='<button class="btn btn-ghost" id="tab-publicidad" style="flex:1;min-width:150px;">📣 Publicidad</button>';
+      const qrButton=/(<button[^>]*id=["']tab-qr["'][^>]*>[\s\S]*?<\/button>)/i;
+      const configButton=/(<button[^>]*id=["']tab-ajustes["'][^>]*>[\s\S]*?<\/button>)/i;
+      if(qrButton.test(html)) html=html.replace(qrButton,adsButton+'$1');
+      else if(configButton.test(html)) html=html.replace(configButton,adsButton+'$1');
+    }
+
+    if(!/gohouse-publicidad\.js/i.test(html)){
+      const adsBridge='<script>(function(){window.loadShared=async function(){const snap=await dbRef.once(\'value\');return snap.val()||{};};window.saveShared=async function(next){await dbRef.set(next);try{data=next;}catch(e){}};})();<\/script>';
+      html=html.replace(/<\/body>/i,adsBridge+'<script src="/gohouse-publicidad.js" defer><\/script></body>');
+    }
+
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(e){
+    document.body.style.visibility='visible';
+    document.body.innerHTML='<main style="font:16px system-ui;color:#fff;padding:32px">No se pudo abrir el panel. Intenta nuevamente.</main>';
+  }
+})();
+</script>
+</body>
+</html>
