@@ -1,39 +1,19 @@
 {
-  "version": "2026.09.02-white-label.7",
-  "published_at": "2026-09-02T19:45:00Z",
+  "version": "2026.09.02-white-label.8",
+  "published_at": "2026-09-02T19:52:00Z",
   "status": "release",
   "files": [
     {
-      "path": "server/src/branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-4/server/src/branding.js",
-      "sha256": "711c34ebd0dc3f8577da6c4b7f87c9a66637de4fd828e125f33a580ef918d543"
-    },
-    {
-      "path": "server/src/push.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-4/server/src/push.js",
-      "sha256": "422f32f503f4c75638d45c85c2006a839510a73158792c4e1631c7d5e676561c"
-    },
-    {
-      "path": "web/gohouse-branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-4/web/gohouse-branding.js",
-      "sha256": "e21793f46f7c096e785655e8f3e7694f09db763a1a336a639822cda118029608"
+      "path": "web/gohouse-qr.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/qr-1/web/gohouse-qr.js",
+      "sha256": "4c0ec2ade40774485a40516da6d09805b050f1ab129953d73b34e8e25b8ecb3c"
     },
     {
       "path": "web/panel/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-5/web/panel/index.html",
-      "sha256": "45571f24c01be916436276e12342e7ade95d4db70c9b4c8f56ff76cc76907ba2"
-    },
-    {
-      "path": "web/domiciliario/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-5/web/domiciliario/index.html",
-      "sha256": "a3821ea57cac3ce42e6c72dc76f3ea52e772e635374f1dba97c6de1018c7ee64"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/qr-1/web/panel/index.html",
+      "sha256": "4f7b246f9effa0647a0ca39560d9183f22b5ffe51ae250513f51a3c3bbf5c884"
     }
   ],
   "delete": [],
-  "migrations": [
-    {
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-6/migrations/001_remove_legacy_brand.sql",
-      "sha256": "461ae2137ec1734a794330b94e686af3654178f8709767a4a70af60b11de499f"
-    }
-  ]
+  "migrations": []
 }
