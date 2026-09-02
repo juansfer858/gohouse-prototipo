@@ -11,15 +11,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Inspect live app shell baselines
+      - name: Validate adaptive app shell payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          curl -fsSL "$HOST/gohouse-cliente.html" -o /tmp/client.html
-          curl -fsSL "$HOST/gohouse-panel.html" -o /tmp/panel.html
-          curl -fsSL "$HOST/gohouse-domiciliarios.html" -o /tmp/driver.html
-          echo 'CLIENT'; wc -c /tmp/client.html; sha256sum /tmp/client.html
-          echo 'PANEL'; wc -c /tmp/panel.html; sha256sum /tmp/panel.html
-          echo 'DRIVER'; wc -c /tmp/driver.html; sha256sum /tmp/driver.html
-          echo 'CHAT_CLIENT'; grep -nE 'chat-soporte-btn|enviarMensajeChatSoporte|chatsClientes' /tmp/client.html | head -20 || true
-          echo 'CHAT_PANEL'; grep -nE 'abrirChatConCliente|chatsClientes|monitorearCambiosChat' /tmp/panel.html | head -30 || true
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery
+          curl -fsSL "$BASE/release/payload/app-shell-1/web/gohouse-app-shell.js" -o /tmp/shell.js
+          curl -fsSL "$BASE/release/payload/app-shell-1/web/gohouse-branding.js" -o /tmp/branding.js
+          curl -fsSL "$BASE/release/payload/publicidad-5/web/gohouse-publicidad.js" -o /tmp/ads.js
+          node --check /tmp/shell.js
+          node --check /tmp/branding.js
+          node --check /tmp/ads.js
+          grep -q 'interactive-widget=resizes-content' /tmp/shell.js
+          grep -q 'font-size:16px!important' /tmp/shell.js
+          grep -q 'clienteNombre' /tmp/shell.js
+          grep -q 'tab-mensajes' /tmp/shell.js
+          grep -q 'chatsClientes' /tmp/shell.js
+          grep -q 'gohouse-app-shell.js' /tmp/branding.js
+          grep -q '700, 1800, 3500, 6500' /tmp/ads.js
+          echo 'SHELL_SHA='; sha256sum /tmp/shell.js
+          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
+          echo 'ADS_SHA='; sha256sum /tmp/ads.js
