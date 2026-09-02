@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Panel</title>
+  <style>html,body{margin:0;min-height:100%;background:#0f1b2b}body{visibility:hidden}</style>
+</head>
+<body>
+<script>
+(async()=>{
+  try{
+    const res=await fetch('/gohouse-panel.html',{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    let html=await res.text();
+    html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/">');
+
+    if(!/id=["']tab-qr-public["']/i.test(html)){
+      const qrButton='<button class="btn btn-ghost" id="tab-qr-public" style="flex:1;" onclick="location.href=\'/qr/\'">📱 QR de pedidos</button>';
+      const configButton=/(<button[^>]*id=["']tab-ajustes["'][^>]*>[\s\S]*?<\/button>)/i;
+      if(configButton.test(html)) html=html.replace(configButton,qrButton+'$1');
+      else{
+        const pedidosButton=/(<button[^>]*id=["']tab-pedidos["'][^>]*>[\s\S]*?<\/button>)/i;
+        html=html.replace(pedidosButton,'$1'+qrButton);
+      }
+    }
+
+    if(!/id=["']tab-publicidad["']/i.test(html)){
+      const adsButton='<button class="btn btn-ghost" id="tab-publicidad" style="flex:1;min-width:150px;">📣 Publicidad</button>';
+      const qrButton=/(<button[^>]*id=["']tab-qr-public["'][^>]*>[\s\S]*?<\/button>)/i;
+      const configButton=/(<button[^>]*id=["']tab-ajustes["'][^>]*>[\s\S]*?<\/button>)/i;
+      if(qrButton.test(html)) html=html.replace(qrButton,adsButton+'$1');
+      else if(configButton.test(html)) html=html.replace(configButton,adsButton+'$1');
+    }
+
+    if(!/gohouse-publicidad\.js/i.test(html)){
+      html=html.replace(/<\/body>/i,'<script src="/gohouse-publicidad.js" defer><\\/script></body>');
+    }
+
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(e){
+    document.body.style.visibility='visible';
+    document.body.innerHTML='<main style="font:16px system-ui;color:#fff;padding:32px">No se pudo abrir el panel. Intenta nuevamente.</main>';
+  }
+})();
+</script>
+</body>
+</html>
