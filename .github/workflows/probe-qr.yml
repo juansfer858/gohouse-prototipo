@@ -11,14 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Hash driver QR payload
+      - name: Verify live client and driver QR modes
         run: |
           set -euo pipefail
-          curl -fsSL https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/qr-3/web/qr/index.html -o /tmp/qr3
-          echo 'QR3_SHA='
-          sha256sum /tmp/qr3
-          grep -q 'QR domiciliarios' /tmp/qr3
-          grep -q "new URL('/domiciliario/'" /tmp/qr3
+          curl -fsSL https://domicilios-llanos.vantixgc.com/qr/ -o /tmp/qr
+          grep -q 'QR clientes' /tmp/qr
+          grep -q 'QR domiciliarios' /tmp/qr
+          grep -q "new URL('/domiciliario/'" /tmp/qr
+          grep -q 'PIN o autorización' /tmp/qr
+          echo 'LIVE_DRIVER_QR_OK=true'
 
       - name: Verify live receipt flow
         run: |
