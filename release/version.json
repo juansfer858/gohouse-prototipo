@@ -1,6 +1,6 @@
 {
-  "version": "2026.09.02-white-label.4",
-  "published_at": "2026-09-02T19:24:00Z",
+  "version": "2026.09.02-white-label.5",
+  "published_at": "2026-09-02T19:27:00Z",
   "status": "release",
   "files": [
     {
@@ -17,6 +17,16 @@
       "path": "web/gohouse-branding.js",
       "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-4/web/gohouse-branding.js",
       "sha256": "1a17bb589ba79154399fb69e28a591c7a14bdaec6bda964839df938f8c0239ad"
+    },
+    {
+      "path": "web/panel/index.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-5/web/panel/index.html",
+      "sha256": "45571f24c01be916436276e12342e7ade95d4db70c9b4c8f56ff76cc76907ba2"
+    },
+    {
+      "path": "web/domiciliario/index.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/white-label-5/web/domiciliario/index.html",
+      "sha256": "a3821ea57cac3ce42e6c72dc76f3ea52e772e635374f1dba97c6de1018c7ee64"
     }
   ],
   "delete": [],
