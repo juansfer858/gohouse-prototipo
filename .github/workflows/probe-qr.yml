@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/probe-qr.yml'
 
-# live recheck after CDN cache window
+# live recheck after >5 minute CDN cache window
 jobs:
   probe:
     runs-on: ubuntu-latest
