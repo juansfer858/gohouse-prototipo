@@ -1,12 +1,12 @@
 {
-  "version": "2026.09.02-white-label.16",
-  "published_at": "2026-09-02T22:18:00Z",
+  "version": "2026.09.02-white-label.17",
+  "published_at": "2026-09-02T22:20:00Z",
   "status": "release",
   "files": [
     {
       "path": "web/gohouse-app-shell.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/app-shell-1/web/gohouse-app-shell.js",
-      "sha256": "a5e5492fe6da9ff38237c4c1148861db216b38debdd8d4e8a358915ffdfc396b"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/app-shell-2/web/gohouse-app-shell.js",
+      "sha256": "c071af707aff6cef21f7edd12a66b752dc58a539ac7ca17ae7c414f396ed5f9d"
     },
     {
       "path": "web/gohouse-branding.js",
