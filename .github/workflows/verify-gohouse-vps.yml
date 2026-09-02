@@ -1,0 +1,61 @@
+name: Verify delivery VPS
+
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/**'
+      - '.github/workflows/verify-gohouse-vps.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wait for VPS autodeploy
+        run: sleep 90
+
+      - name: Verify health
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/api/health | tee /tmp/health.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/health.json'))
+          assert data.get('ok') is True, data
+          assert data.get('db') is True, data
+          PY
+
+      - name: Verify public white-label config
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/api/public/config | tee /tmp/brand.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/brand.json'))
+          name=str(data.get('brandName','')).strip().lower()
+          assert name and name not in {'go house','gohouse'}, data
+          PY
+
+      - name: Verify clean routes
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --location --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/ >/tmp/client.html
+          curl --fail --show-error --silent --location --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel.html
+          curl --fail --show-error --silent --location --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/domiciliario/ >/tmp/driver.html
+          test -s /tmp/client.html
+          test -s /tmp/panel.html
+          test -s /tmp/driver.html
+
+      - name: Verify white-label runtime
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/gohouse-branding.js >/tmp/branding.js
+          grep -q "brandName: 'Domicilios'" /tmp/branding.js
+          grep -q 'cleanVisibleRoute' /tmp/branding.js
