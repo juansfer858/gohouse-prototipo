@@ -1,22 +1,12 @@
 {
-  "version": "2026.09.02-white-label.13",
-  "published_at": "2026-09-02T21:34:00Z",
+  "version": "2026.09.02-white-label.14",
+  "published_at": "2026-09-02T21:47:00Z",
   "status": "release",
   "files": [
     {
-      "path": "web/gohouse-publicidad.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-1/web/gohouse-publicidad.js",
-      "sha256": "f05000685d4571d3b7a1cd4e19cc2d55ad6035125de1df8c5f98258f224ac618"
-    },
-    {
-      "path": "web/gohouse-branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-1/web/gohouse-branding.js",
-      "sha256": "421ecac190b02a993fbb21cb732d4dfd906a82375956ff40882ab3969340a13c"
-    },
-    {
       "path": "web/panel/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-1/web/panel/index.html",
-      "sha256": "4ad51654026fb13ad244ec11a4117ed9ea297611db121ce76a6313d1307a9001"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-2/web/panel/index.html",
+      "sha256": "571ab774bf3c6e2b1e71f73f715d0a860fb75f472b0bf47d14deb5191f6da136"
     }
   ],
   "delete": [],
