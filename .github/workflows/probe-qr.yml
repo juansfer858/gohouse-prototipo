@@ -9,20 +9,43 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 8
     steps:
-      - name: Validate panel navigation payload
+      - name: Verify panel navigation fix in production
         run: |
           set -euo pipefail
-          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/panel-nav-1/web
-          curl -fsSL "$BASE/gohouse-panel-nav.js" -o /tmp/nav.js
-          curl -fsSL "$BASE/panel/index.html" -o /tmp/panel.html
+          HOST=https://domicilios-llanos.vantixgc.com
+          EXPECT=f12560f4415d5307b9cc4c6ad9438b035eb955aa275c55be1887db57c9dae5af
+          READY=0
+          for attempt in $(seq 1 28); do
+            if curl -fsSL "$HOST/gohouse-panel-nav.js" -o /tmp/nav.js 2>/dev/null; then
+              GOT="$(sha256sum /tmp/nav.js | awk '{print $1}')"
+              echo "attempt=$attempt nav_sha=$GOT"
+              if [ "$GOT" = "$EXPECT" ]; then READY=1; break; fi
+            else
+              echo "attempt=$attempt nav_not_ready"
+            fi
+            sleep 15
+          done
+          test "$READY" -eq 1
           node --check /tmp/nav.js
           grep -q 'restoreNative' /tmp/nav.js
-          grep -q 'tab-pedidos' /tmp/nav.js
-          grep -q 'tab-informes' /tmp/nav.js
-          grep -q 'tab-usuarios' /tmp/nav.js
-          grep -q 'tab-ajustes' /tmp/nav.js
-          grep -q 'gohouse-panel-nav.js' /tmp/panel.html
-          echo 'NAV_SHA='; sha256sum /tmp/nav.js
-          echo 'PANEL_WRAPPER_SHA='; sha256sum /tmp/panel.html
+          grep -q 'requestAnimationFrame' /tmp/nav.js
+
+          curl -fsSL "$HOST/panel/" -o /tmp/panel-wrapper.html
+          grep -q 'gohouse-panel-nav.js' /tmp/panel-wrapper.html
+
+          BROWSER=""
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
+          done
+          test -n "$BROWSER"
+          timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --window-size=1280,800 --virtual-time-budget=9000 --dump-dom \
+            "$HOST/panel/" >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
+          grep -q 'gohouse-panel-nav.js' /tmp/panel-dom.html
+          grep -q 'id="tab-pedidos"' /tmp/panel-dom.html
+          grep -q 'id="tab-informes"' /tmp/panel-dom.html
+          grep -q 'id="tab-usuarios"' /tmp/panel-dom.html
+          grep -q 'id="tab-mensajes"' /tmp/panel-dom.html
+          grep -q 'id="tab-publicidad"' /tmp/panel-dom.html
+          echo 'LIVE_PANEL_NAV_FIX_OK=true'
