@@ -6,22 +6,59 @@ on:
     paths:
       - '.github/workflows/probe-qr.yml'
 
-# live recheck after >5 minute CDN cache window
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Diagnose live panel bridge
+      - name: Diagnose live client advertising
         run: |
-          set -u
+          set -euo pipefail
           HOST=https://domicilios-llanos.vantixgc.com
-          curl -fsSL "$HOST/panel/" -o /tmp/panel.html
-          echo '=== MATCHES ==='
-          grep -nE 'QR pedidos y operadores|window\.loadShared=async function|window\.saveShared=async function|tab-qr-public|tab-publicidad' /tmp/panel.html || true
-          echo '=== COUNTS ==='
-          echo "qr_label=$(grep -c 'QR pedidos y operadores' /tmp/panel.html || true)"
-          echo "load_bridge=$(grep -c 'window.loadShared=async function' /tmp/panel.html || true)"
-          echo "save_bridge=$(grep -c 'window.saveShared=async function' /tmp/panel.html || true)"
-          echo "public_id=$(grep -o 'id=\"tab-qr-public\"' /tmp/panel.html | wc -l)"
-          echo "ads_id=$(grep -o 'id=\"tab-publicidad\"' /tmp/panel.html | wc -l)"
+
+          curl -fsSL "$HOST/gohouse-cliente.html" -o /tmp/client.html
+          curl -fsSL "$HOST/gohouse-publicidad.js" -o /tmp/ads.js
+          echo '=== CLIENT MOUNT CANDIDATES ==='
+          grep -nE 'step-home|home-card|Pedir un domicilio nuevo|Ver mis pedidos|id="[^"]*(home|inicio)[^"]*"' /tmp/client.html | head -80 || true
+          echo '=== ADS MODULE MOUNT ==='
+          grep -nE "step-home|home-card|carouselContainer|loadShared|publicidad" /tmp/ads.js | head -80 || true
+
+          curl -fsSL -X POST "$HOST/api/auth/anonymous" \
+            -H 'Content-Type: application/json' \
+            --data '{"appKind":"client"}' -o /tmp/auth.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/auth.json'))
+          token=x.get('token')
+          assert token, x
+          open('/tmp/token','w').write(token)
+          PY
+          TOKEN="$(cat /tmp/token)"
+          curl -fsSL "$HOST/api/data?path=publicidad" -H "Authorization: Bearer $TOKEN" -o /tmp/publicidad.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/publicidad.json'))
+          v=x.get('value')
+          if isinstance(v,list): ads=[a for a in v if isinstance(a,dict)]
+          elif isinstance(v,dict): ads=[a for a in v.values() if isinstance(a,dict)]
+          else: ads=[]
+          active=[a for a in ads if a.get('active',a.get('activa',True)) is not False]
+          with_image=[a for a in active if str(a.get('image') or a.get('imagen') or '').strip()]
+          print('ad_count=',len(ads))
+          print('active_count=',len(active))
+          print('active_with_image=',len(with_image))
+          for i,a in enumerate(with_image[:5]):
+              img=str(a.get('image') or a.get('imagen') or '')
+              print(f'ad_{i}_image_kind=', 'uploads' if img.startswith('/uploads/') else ('http' if img.startswith('http') else ('data' if img.startswith('data:') else 'other')))
+              print(f'ad_{i}_title=',str(a.get('title') or '')[:80])
+          PY
+
+          BROWSER=""
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
+          done
+          if [ -n "$BROWSER" ]; then
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=12000 --dump-dom "$HOST/" >/tmp/client-dom.html 2>/tmp/client-browser.err || true
+            echo '=== RENDERED CAROUSEL ==='
+            grep -nE 'gh-publicidad-carousel|gh-ads-client|Publicidad' /tmp/client-dom.html | head -40 || true
+          fi
