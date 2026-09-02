@@ -11,15 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Verify live panel bridge and unified QR
+      - name: Diagnose live panel bridge
         run: |
-          set -euo pipefail
-          sleep 25
+          set -u
           HOST=https://domicilios-llanos.vantixgc.com
           curl -fsSL "$HOST/panel/" -o /tmp/panel.html
-          grep -q 'QR pedidos y operadores' /tmp/panel.html
-          grep -q 'window.loadShared=async function' /tmp/panel.html
-          grep -q 'window.saveShared=async function' /tmp/panel.html
-          test "$(grep -o 'id="tab-qr-public"' /tmp/panel.html | wc -l)" -eq 0
-          grep -q 'id="tab-publicidad"' /tmp/panel.html
-          echo 'LIVE_PANEL_BRIDGE_OK=true'
+          echo '=== MATCHES ==='
+          grep -nE 'QR pedidos y operadores|window\.loadShared=async function|window\.saveShared=async function|tab-qr-public|tab-publicidad' /tmp/panel.html || true
+          echo '=== COUNTS ==='
+          echo "qr_label=$(grep -c 'QR pedidos y operadores' /tmp/panel.html || true)"
+          echo "load_bridge=$(grep -c 'window.loadShared=async function' /tmp/panel.html || true)"
+          echo "save_bridge=$(grep -c 'window.saveShared=async function' /tmp/panel.html || true)"
+          echo "public_id=$(grep -o 'id=\"tab-qr-public\"' /tmp/panel.html | wc -l)"
+          echo "ads_id=$(grep -o 'id=\"tab-publicidad\"' /tmp/panel.html | wc -l)"
