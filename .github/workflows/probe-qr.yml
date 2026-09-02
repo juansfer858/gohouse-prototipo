@@ -11,8 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Inspect live VPS adapter implementation
+      - name: Hash advertising payload
         run: |
           set -euo pipefail
-          curl -fsSL https://domicilios-llanos.vantixgc.com/gohouse-vps-adapter.js -o /tmp/adapter
-          sed -n '1,180p' /tmp/adapter
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/publicidad-1/web
+          curl -fsSL "$BASE/gohouse-publicidad.js" -o /tmp/ads.js
+          curl -fsSL "$BASE/gohouse-branding.js" -o /tmp/branding.js
+          curl -fsSL "$BASE/panel/index.html" -o /tmp/panel.html
+          node --check /tmp/ads.js
+          node --check /tmp/branding.js
+          grep -q '📣 Publicidad' /tmp/ads.js
+          grep -q 'gh-publicidad-carousel' /tmp/ads.js
+          grep -q 'gohouse-publicidad.js' /tmp/branding.js
+          grep -q 'tab-publicidad' /tmp/panel.html
+          echo 'ADS_SHA='; sha256sum /tmp/ads.js
+          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
+          echo 'PANEL_SHA='; sha256sum /tmp/panel.html
