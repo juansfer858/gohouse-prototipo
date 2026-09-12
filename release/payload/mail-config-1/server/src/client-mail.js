@@ -41,6 +41,7 @@ async function sendSmtp({fromEmail,fromName,replyTo,to,subject,text,html}){
     const helo=fromEmail.split('@')[1] || 'vantixgc.com';
     smtp.write(`EHLO ${helo}`); await smtp.expect([250]);
     smtp.write('STARTTLS'); await smtp.expect([220]);
+    smtp.detach();
     socket=await upgradeTls(socket,SMTP_HOST);
     smtp=createProtocol(socket);
     smtp.write(`EHLO ${helo}`); await smtp.expect([250]);
@@ -52,7 +53,7 @@ async function sendSmtp({fromEmail,fromName,replyTo,to,subject,text,html}){
     smtp.write('QUIT'); await smtp.expect([221]).catch(()=>{});
   }catch(err){
     const e=new Error(err?.message?.startsWith('SMTP_') ? err.message : 'MAIL_SEND_FAILED'); e.status=502; e.cause=err; throw e;
-  }finally{ try{socket.end();}catch{} }
+  }finally{ try{smtp?.detach?.();socket.end();}catch{} }
 }
 
 function connectPlain(host,port){
@@ -73,22 +74,27 @@ function upgradeTls(socket,host){
 
 function createProtocol(socket){
   let buffer=''; const queue=[]; const waiters=[];
+  const fail=err=>{while(waiters.length)waiters.shift().reject(err);};
   const pump=()=>{
     while(queue.length && waiters.length){
       const item=queue.shift(); const waiter=waiters.shift(); waiter.resolve(item);
     }
   };
-  socket.on('data',chunk=>{
+  const onData=chunk=>{
     buffer+=chunk.toString('utf8');
     for(;;){
       const idx=buffer.indexOf('\n'); if(idx<0)break;
       const line=buffer.slice(0,idx+1).replace(/\r?\n$/,''); buffer=buffer.slice(idx+1);
       queue.push(line); pump();
     }
-  });
+  };
+  const onError=err=>fail(err);
+  const onClose=()=>fail(new Error('SMTP_CONNECTION_CLOSED'));
+  socket.on('data',onData); socket.on('error',onError); socket.on('close',onClose);
   const readLine=()=>queue.length?Promise.resolve(queue.shift()):new Promise((resolve,reject)=>waiters.push({resolve,reject}));
   return {
     write(line){socket.write(line+'\r\n');},
+    detach(){socket.off('data',onData);socket.off('error',onError);socket.off('close',onClose);},
     async expect(allowed){
       const lines=[];
       for(;;){
@@ -122,7 +128,7 @@ function buildMessage({fromEmail,fromName,replyTo,to,subject,text,html}){
     `--${boundary}--`;
 }
 
-function b64(v){ return Buffer.from(String(v),'utf8').toString('base64').match(/.{1,76}/g).join('\r\n'); }
+function b64(v){ const s=Buffer.from(String(v),'utf8').toString('base64'); return (s.match(/.{1,76}/g)||['']).join('\r\n'); }
 function mimeWord(v){ return `=?UTF-8?B?${Buffer.from(String(v),'utf8').toString('base64')}?=`; }
 function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'')); }
 function escapeHtml(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
