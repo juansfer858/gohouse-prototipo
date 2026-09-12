@@ -1,44 +1,14 @@
 {
-  "version": "2026.09.12-white-label.24",
-  "published_at": "2026-09-12T20:00:00Z",
+  "version": "2026.09.12-white-label.25",
+  "published_at": "2026-09-12T20:10:30Z",
   "status": "release",
   "files": [
     {
-      "path": "server/src/fleet.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/server/src/fleet.js",
-      "sha256": "d26afe8ea760c28b08272937ac90b97a3c2c435e3abd79749df6b394c66d8e55"
-    },
-    {
-      "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/server/src/server.js",
-      "sha256": "f570e9a92cf158c74c008a194188f786dc0e9a236ff3daaed73e424f09f2d39d"
-    },
-    {
       "path": "web/gohouse-fleet-driver.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/web/gohouse-fleet-driver.js",
-      "sha256": "37e18fb88c2cccfe3a8978120014c54564a5833056157ef6565f7a4b04cfea2b"
-    },
-    {
-      "path": "web/gohouse-fleet-panel.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/web/gohouse-fleet-panel.js",
-      "sha256": "bc64a25c8ec24ebc4afc027e7bf566918865d7962d259b08ca9e9faf5365bf96"
-    },
-    {
-      "path": "web/domiciliario/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/web/domiciliario/index.html",
-      "sha256": "3b53a86f3a1793022abbd8227bd1b599d233ced85a6dbde29c7df217372e2704"
-    },
-    {
-      "path": "web/panel/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/web/panel/index.html",
-      "sha256": "4d6bed3e495e050148f8c017177a3cf1d37cee80df6d6833a41556a8e6233bfd"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-2/web/gohouse-fleet-driver.js",
+      "sha256": "2760f3370db76197d1347dfed572e4f8d49e00868f04de2c8c2e00a8fe7dbff5"
     }
   ],
   "delete": [],
-  "migrations": [
-    {
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1/migrations/003_driver_locations.sql",
-      "sha256": "de285752c8320246ce29bf658d1f9fc3127f82ba2ecfb3d106da6af449bbe19b"
-    }
-  ]
+  "migrations": []
 }
