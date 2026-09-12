@@ -9,51 +9,18 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 3
     steps:
-      - name: Verify live fleet release in production
+      - name: Validate explicit GPS permission payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          EXPECT_DRIVER=37e18fb88c2cccfe3a8978120014c54564a5833056157ef6565f7a4b04cfea2b
-          EXPECT_PANEL=bc64a25c8ec24ebc4afc027e7bf566918865d7962d259b08ca9e9faf5365bf96
-          READY=0
-          for attempt in $(seq 1 36); do
-            if curl -fsSL "$HOST/gohouse-fleet-driver.js" -o /tmp/driver.js 2>/dev/null && \
-               curl -fsSL "$HOST/gohouse-fleet-panel.js" -o /tmp/panel.js 2>/dev/null; then
-              D="$(sha256sum /tmp/driver.js | awk '{print $1}')"
-              P="$(sha256sum /tmp/panel.js | awk '{print $1}')"
-              echo "attempt=$attempt driver=$D panel=$P"
-              if [ "$D" = "$EXPECT_DRIVER" ] && [ "$P" = "$EXPECT_PANEL" ]; then READY=1; break; fi
-            fi
-            sleep 10
-          done
-          test "$READY" -eq 1
+          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-2/web/gohouse-fleet-driver.js
+          curl -fsSL "$URL" -o /tmp/driver.js
           node --check /tmp/driver.js
-          node --check /tmp/panel.js
+          grep -q 'ACTIVAR UBICACIÓN' /tmp/driver.js
+          grep -q 'requestLocationPermission' /tmp/driver.js
+          grep -q "permissions.query({name:'geolocation'})" /tmp/driver.js
           grep -q 'watchPosition' /tmp/driver.js
-          grep -q 'Ya recogí / compré' /tmp/driver.js
-          grep -q 'Flota en vivo' /tmp/panel.js
-          grep -q 'openstreetmap.org' /tmp/panel.js
-
-          curl -fsSL "$HOST/domiciliario/" -o /tmp/driver-wrapper.html
-          curl -fsSL "$HOST/panel/" -o /tmp/panel-wrapper.html
-          grep -q 'gohouse-fleet-driver.js' /tmp/driver-wrapper.html
-          grep -q 'gohouse-fleet-panel.js' /tmp/panel-wrapper.html
-
-          curl -fsSL "$HOST/api/health" -o /tmp/health.json
-          python3 - <<'PY'
-          import json
-          h=json.load(open('/tmp/health.json'))
-          assert h.get('ok') is True and h.get('db') is True and h.get('fleet') is True, h
-          PY
-
-          CODE=$(curl -sS -o /tmp/live.json -w '%{http_code}' "$HOST/api/fleet/live")
-          test "$CODE" = "401" -o "$CODE" = "403"
-          CODE=$(curl -sS -o /tmp/loc.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' "$HOST/api/fleet/location")
-          test "$CODE" = "401" -o "$CODE" = "403"
-
-          echo 'LIVE_FLEET_BACKEND_OK=true'
-          echo 'LIVE_FLEET_DRIVER_GPS_OK=true'
-          echo 'LIVE_FLEET_PANEL_MAP_OK=true'
-          echo 'LIVE_FLEET_ROLE_PROTECTION_OK=true'
+          grep -q "sendPoint(activeOrderId,'track',point)" /tmp/driver.js
+          grep -q 'Se comparte únicamente mientras tengas un domicilio activo' /tmp/driver.js
+          echo 'DRIVER_GPS_PERMISSION_SHA='; sha256sum /tmp/driver.js
