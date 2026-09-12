@@ -1,29 +1,39 @@
 {
-  "version": "2026.09.12-white-label.21",
-  "published_at": "2026-09-12T18:14:00Z",
+  "version": "2026.09.12-white-label.22",
+  "published_at": "2026-09-12T18:41:00Z",
   "status": "release",
   "files": [
     {
+      "path": "server/src/client-auth.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1/server/src/client-auth.js",
+      "sha256": "118125202c1e15323ea435ec3f7dd5bc6ef62c8ebbf7b18412c03df1a051f80e"
+    },
+    {
+      "path": "server/src/client-mail.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1/server/src/client-mail.js",
+      "sha256": "231cbb62fc5b014452640801d878a79e5ed7a8019322b5da3b1eab03c4b167af"
+    },
+    {
+      "path": "server/src/server.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1/server/src/server.js",
+      "sha256": "e54d38f4326063d98e97105e9becac74a1dc9ab7833b145b149dba1e5b29c6a5"
+    },
+    {
+      "path": "web/gohouse-client-auth.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1/web/gohouse-client-auth.js",
+      "sha256": "9cdde804f0d279f9b7dc34ce4ebc8807a66b30b726ab096e8181991b8c2a26e4"
+    },
+    {
       "path": "web/gohouse-push.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/push-1/web/gohouse-push.js",
-      "sha256": "49927586be709577c18cab1e4d32468110f7f5ca8b75649b9d733e06cdd284c2"
-    },
-    {
-      "path": "web/service-worker.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/push-1/web/service-worker.js",
-      "sha256": "1573ac0840e31a87181b0d8c59cb40d3b8705366970d75176c63e38059144c42"
-    },
-    {
-      "path": "web/gohouse-branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/push-1/web/gohouse-branding.js",
-      "sha256": "6a30bcd15fd662c02d1ba6499393b8b4de03d16d33f34da7c157c35d2588fc5e"
-    },
-    {
-      "path": "server/src/push.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/push-1/server/src/push.js",
-      "sha256": "c053fe4ee6e25338068f2a497b4d281e5b2e3b8d10ae9745479e276d7ab284a7"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1/web/gohouse-push.js",
+      "sha256": "659a64b5893ad49d0f4c186ea5414334a5ed2be51d1147afe46a1a62d38382f4"
     }
   ],
   "delete": [],
-  "migrations": []
+  "migrations": [
+    {
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1/migrations/002_client_accounts.sql",
+      "sha256": "ea2582e07bce2ce547c6aeaa2ba4f3f70a13917c41f978c08ca175d8425d0ed3"
+    }
+  ]
 }
