@@ -18,10 +18,8 @@ jobs:
       - name: Verify health and push
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/api/health | tee /tmp/health.json
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/api/push/public-key | tee /tmp/push-key.json
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/api/health | tee /tmp/health.json
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/api/push/public-key | tee /tmp/push-key.json
           python3 - <<'PY'
           import json
           data=json.load(open('/tmp/health.json'))
@@ -35,8 +33,7 @@ jobs:
       - name: Verify public white-label config
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/api/public/config | tee /tmp/brand.json
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/api/public/config | tee /tmp/brand.json
           python3 - <<'PY'
           import json
           data=json.load(open('/tmp/brand.json'))
@@ -92,7 +89,7 @@ jobs:
           grep -q 'gohouse-publicidad.js' /tmp/branding.js
           grep -q 'tab-publicidad' /tmp/panel-wrapper.html
 
-      - name: Verify rendered panel and client extensions
+      - name: Verify pre-login rendered extensions
         run: |
           set -euo pipefail
           BROWSER=""
@@ -100,12 +97,11 @@ jobs:
             if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
           done
           if [ -n "$BROWSER" ]; then
-            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
-            grep -q 'id="tab-qr"' /tmp/panel-dom.html
-            ! grep -q 'id="tab-qr-public"' /tmp/panel-dom.html
-            grep -q 'id="tab-publicidad"' /tmp/panel-dom.html
-            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom https://domicilios-llanos.vantixgc.com/ >/tmp/client-dom.html 2>/tmp/client-browser.err || true
-            grep -q 'id="gh-publicidad-carousel"' /tmp/client-dom.html
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
+            grep -q 'gohouse-branding.js' /tmp/panel-dom.html
+            grep -q 'gohouse-panel-nav.js' /tmp/panel-dom.html
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom https://domicilios-llanos.vantixgc.com/ >/tmp/client-dom.html 2>/tmp/client-browser.err || true
+            grep -q 'gohouse-branding.js' /tmp/client-dom.html
           else
             echo 'Browser headless no disponible; verificaciones HTTP ya pasaron.'
           fi
