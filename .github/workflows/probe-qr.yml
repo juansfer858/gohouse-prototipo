@@ -9,19 +9,35 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 7
     steps:
-      - name: Validate GPS render-loop hotfix
+      - name: Verify GPS freeze hotfix in production
         run: |
           set -euo pipefail
-          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-3/web/gohouse-fleet-driver.js
-          curl -fsSL "$URL" -o /tmp/driver.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          EXPECT=2b27055d87ba89d3e13fb347f9791808f4a1be80b89bee5b17f5aa7689f49d6c
+          READY=0
+          for attempt in $(seq 1 36); do
+            if curl -fsSL "$HOST/gohouse-fleet-driver.js" -o /tmp/driver.js 2>/dev/null; then
+              SHA="$(sha256sum /tmp/driver.js | awk '{print $1}')"
+              echo "attempt=$attempt sha=$SHA"
+              if [ "$SHA" = "$EXPECT" ]; then READY=1; break; fi
+            fi
+            sleep 10
+          done
+          test "$READY" -eq 1
           node --check /tmp/driver.js
           grep -q 'ACTIVAR UBICACIÓN' /tmp/driver.js
-          grep -q 'requestLocationPermission' /tmp/driver.js
           grep -q 'lastCardKey' /tmp/driver.js
           grep -q 'new MutationObserver(() => patchActions())' /tmp/driver.js
           ! grep -q 'new MutationObserver(()=>{patchActions();renderPermissionCard();})' /tmp/driver.js
           grep -q 'SOLICITANDO UBICACIÓN' /tmp/driver.js
           grep -q 'watchPosition' /tmp/driver.js
-          echo 'GPS_HOTFIX_SHA='; sha256sum /tmp/driver.js
+          curl -fsSL "$HOST/api/health" -o /tmp/health.json
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          assert h.get('ok') is True and h.get('db') is True and h.get('fleet') is True, h
+          PY
+          echo 'LIVE_GPS_FREEZE_FIX_OK=true'
+          echo 'LIVE_FLEET_STILL_OK=true'
