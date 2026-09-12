@@ -9,56 +9,23 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 3
     steps:
-      - name: Verify client accounts in production
+      - name: Validate Google Workspace recovery mail payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          EXPECT_UI=9cdde804f0d279f9b7dc34ce4ebc8807a66b30b726ab096e8181991b8c2a26e4
-          EXPECT_PUSH=659a64b5893ad49d0f4c186ea5414334a5ed2be51d1147afe46a1a62d38382f4
-          READY=0
-          for attempt in $(seq 1 36); do
-            if curl -fsSL "$HOST/gohouse-client-auth.js" -o /tmp/client-ui.js 2>/dev/null && curl -fsSL "$HOST/gohouse-push.js" -o /tmp/push.js 2>/dev/null; then
-              U="$(sha256sum /tmp/client-ui.js | awk '{print $1}')"
-              P="$(sha256sum /tmp/push.js | awk '{print $1}')"
-              echo "attempt=$attempt ui=$U push=$P"
-              if [ "$U" = "$EXPECT_UI" ] && [ "$P" = "$EXPECT_PUSH" ]; then READY=1; break; fi
-            fi
-            sleep 10
-          done
-          test "$READY" -eq 1
-          node --check /tmp/client-ui.js
-          node --check /tmp/push.js
-          grep -q 'Olvidé mi contraseña' /tmp/client-ui.js
-          grep -q 'Crear mi cuenta' /tmp/client-ui.js
-          grep -q 'gohouse-client-auth.js' /tmp/push.js
-
-          curl -fsSL "$HOST/api/health" -o /tmp/health.json
-          python3 - <<'PY'
-          import json
-          h=json.load(open('/tmp/health.json'))
-          assert h.get('ok') is True and h.get('db') is True and h.get('push') is True, h
-          assert 'clientRecoveryMail' in h, h
-          print('CLIENT_RECOVERY_MAIL_READY=',h.get('clientRecoveryMail'))
-          PY
-
-          CODE=$(curl -sS -o /tmp/login.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"email":"no-existe-auth-test@example.invalid","password":"incorrecta"}' "$HOST/api/auth/client/login")
-          test "$CODE" = "401"
-          grep -q 'INVALID_CREDENTIALS' /tmp/login.json
-
-          curl -fsSL -H 'Content-Type: application/json' -d '{"email":"no-existe-auth-test@example.invalid"}' "$HOST/api/auth/client/recover" | grep -q '"ok":true'
-
-          BROWSER=""
-          for c in google-chrome google-chrome-stable chromium chromium-browser; do
-            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
-          done
-          test -n "$BROWSER"
-          timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --window-size=390,844 --virtual-time-budget=9000 --dump-dom "$HOST/" >/tmp/client-dom.html 2>/tmp/client-browser.err || true
-          grep -q 'id="gh-client-auth-gate"' /tmp/client-dom.html
-          grep -q 'Iniciar sesión' /tmp/client-dom.html
-          grep -q 'Crear cuenta' /tmp/client-dom.html
-          grep -q 'Olvidé mi contraseña' /tmp/client-dom.html
-          echo 'LIVE_CLIENT_AUTH_OK=true'
-          echo 'LIVE_CLIENT_LOGIN_OK=true'
-          echo 'LIVE_CLIENT_RECOVERY_ROUTE_OK=true'
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/mail-config-1
+          curl -fsSL "$BASE/server/src/client-mail.js" -o /tmp/client-mail.js
+          curl -fsSL "$BASE/web/gohouse-mail-config.js" -o /tmp/mail-ui.js
+          curl -fsSL "$BASE/web/panel/index.html" -o /tmp/panel.html
+          node --check /tmp/client-mail.js
+          node --check /tmp/mail-ui.js
+          grep -q 'smtp-relay.gmail.com' /tmp/client-mail.js
+          grep -q "smtp.write('STARTTLS')" /tmp/client-mail.js
+          grep -q 'recoveryMailEnabled' /tmp/client-mail.js
+          grep -q 'Correo y recuperación' /tmp/mail-ui.js
+          grep -q 'recoveryFromEmail' /tmp/mail-ui.js
+          grep -q 'gohouse-mail-config.js' /tmp/panel.html
+          echo 'CLIENT_MAIL_SHA='; sha256sum /tmp/client-mail.js
+          echo 'MAIL_UI_SHA='; sha256sum /tmp/mail-ui.js
+          echo 'PANEL_WRAPPER_SHA='; sha256sum /tmp/panel.html
