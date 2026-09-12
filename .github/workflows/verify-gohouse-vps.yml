@@ -13,18 +13,23 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Wait for VPS autodeploy
-        run: sleep 90
+        run: sleep 30
 
-      - name: Verify health
+      - name: Verify health and push
         run: |
           set -euo pipefail
           curl --fail --show-error --silent --max-time 15 \
             https://domicilios-llanos.vantixgc.com/api/health | tee /tmp/health.json
+          curl --fail --show-error --silent --max-time 15 \
+            https://domicilios-llanos.vantixgc.com/api/push/public-key | tee /tmp/push-key.json
           python3 - <<'PY'
           import json
           data=json.load(open('/tmp/health.json'))
+          key=json.load(open('/tmp/push-key.json'))
           assert data.get('ok') is True, data
           assert data.get('db') is True, data
+          assert data.get('push') is True, data
+          assert len(str(key.get('publicKey',''))) > 40, key
           PY
 
       - name: Verify public white-label config
@@ -42,33 +47,37 @@ jobs:
       - name: Verify clean routes
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --location --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/ >/tmp/client.html
-          curl --fail --show-error --silent --location --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel.html
-          curl --fail --show-error --silent --location --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/domiciliario/ >/tmp/driver.html
+          curl --fail --show-error --silent --location --max-time 15 https://domicilios-llanos.vantixgc.com/ >/tmp/client.html
+          curl --fail --show-error --silent --location --max-time 15 https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel.html
+          curl --fail --show-error --silent --location --max-time 15 https://domicilios-llanos.vantixgc.com/domiciliario/ >/tmp/driver.html
           test -s /tmp/client.html
           test -s /tmp/panel.html
           test -s /tmp/driver.html
 
-      - name: Verify white-label runtime
+      - name: Verify white-label and push runtimes
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/gohouse-branding.js >/tmp/branding.js
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/gohouse-branding.js >/tmp/branding.js
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/gohouse-push.js >/tmp/push.js
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/service-worker.js >/tmp/sw.js
+          node --check /tmp/branding.js
+          node --check /tmp/push.js
+          node --check /tmp/sw.js
           grep -q "brandName: 'Domicilios'" /tmp/branding.js
           grep -q 'cleanVisibleRoute' /tmp/branding.js
+          grep -q 'white-label-push-script' /tmp/branding.js
+          grep -q 'Notification.requestPermission' /tmp/push.js
+          grep -q "addEventListener('push'" /tmp/sw.js
+          grep -q "addEventListener('notificationclick'" /tmp/sw.js
 
-      - name: Verify QR button and center
+      - name: Verify unified QR and center
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-wrapper.html
-          grep -q 'tab-qr-public' /tmp/panel-wrapper.html
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-wrapper.html
+          grep -q 'tab-qr' /tmp/panel-wrapper.html
+          ! grep -q 'tab-qr-public' /tmp/panel-wrapper.html
           grep -q '/qr/' /tmp/panel-wrapper.html
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/qr/ >/tmp/qr-center.html
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/qr/ >/tmp/qr-center.html
           grep -q 'QR de pedidos' /tmp/qr-center.html
           grep -q 'Descargar historia' /tmp/qr-center.html
           grep -q 'Imprimir afiche' /tmp/qr-center.html
@@ -76,12 +85,10 @@ jobs:
       - name: Verify advertising module
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --max-time 15 \
-            https://domicilios-llanos.vantixgc.com/gohouse-publicidad.js >/tmp/ads.js
+          curl --fail --show-error --silent --max-time 15 https://domicilios-llanos.vantixgc.com/gohouse-publicidad.js >/tmp/ads.js
           node --check /tmp/ads.js
           grep -q 'gh-publicidad-carousel' /tmp/ads.js
           grep -q 'Guardar publicidad' /tmp/ads.js
-          grep -q 'publicidad' /tmp/ads.js
           grep -q 'gohouse-publicidad.js' /tmp/branding.js
           grep -q 'tab-publicidad' /tmp/panel-wrapper.html
 
@@ -93,12 +100,11 @@ jobs:
             if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
           done
           if [ -n "$BROWSER" ]; then
-            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom \
-              https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
-            grep -q 'id="tab-qr-public"' /tmp/panel-dom.html
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom https://domicilios-llanos.vantixgc.com/panel/ >/tmp/panel-dom.html 2>/tmp/panel-browser.err || true
+            grep -q 'id="tab-qr"' /tmp/panel-dom.html
+            ! grep -q 'id="tab-qr-public"' /tmp/panel-dom.html
             grep -q 'id="tab-publicidad"' /tmp/panel-dom.html
-            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom \
-              https://domicilios-llanos.vantixgc.com/ >/tmp/client-dom.html 2>/tmp/client-browser.err || true
+            timeout 30s "$BROWSER" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --dump-dom https://domicilios-llanos.vantixgc.com/ >/tmp/client-dom.html 2>/tmp/client-browser.err || true
             grep -q 'id="gh-publicidad-carousel"' /tmp/client-dom.html
           else
             echo 'Browser headless no disponible; verificaciones HTTP ya pasaron.'
