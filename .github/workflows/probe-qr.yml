@@ -24,7 +24,7 @@ jobs:
           node --check /tmp/branding.js
           node --check /tmp/push-server.js
           grep -q 'Notification.requestPermission' /tmp/push-client.js
-          grep -q '/api/push/subscribe' /tmp/push-client.js
+          grep -q "api('/push/subscribe'" /tmp/push-client.js
           grep -q "addEventListener('push'" /tmp/sw.js
           grep -q "addEventListener('notificationclick'" /tmp/sw.js
           grep -q 'notifyClientChats' /tmp/push-server.js
