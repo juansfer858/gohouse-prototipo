@@ -9,45 +9,36 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 3
     steps:
-      - name: Verify Web Push release in production
+      - name: Validate client account and recovery payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          EXPECT_PUSH=49927586be709577c18cab1e4d32468110f7f5ca8b75649b9d733e06cdd284c2
-          EXPECT_SW=1573ac0840e31a87181b0d8c59cb40d3b8705366970d75176c63e38059144c42
-          EXPECT_BRANDING=6a30bcd15fd662c02d1ba6499393b8b4de03d16d33f34da7c157c35d2588fc5e
-          READY=0
-          for attempt in $(seq 1 30); do
-            if curl -fsSL "$HOST/gohouse-push.js" -o /tmp/push.js 2>/dev/null && \
-               curl -fsSL "$HOST/service-worker.js" -o /tmp/sw.js 2>/dev/null && \
-               curl -fsSL "$HOST/gohouse-branding.js" -o /tmp/branding.js 2>/dev/null; then
-              P="$(sha256sum /tmp/push.js | awk '{print $1}')"
-              S="$(sha256sum /tmp/sw.js | awk '{print $1}')"
-              B="$(sha256sum /tmp/branding.js | awk '{print $1}')"
-              echo "attempt=$attempt push=$P sw=$S branding=$B"
-              if [ "$P" = "$EXPECT_PUSH" ] && [ "$S" = "$EXPECT_SW" ] && [ "$B" = "$EXPECT_BRANDING" ]; then READY=1; break; fi
-            fi
-            sleep 10
-          done
-          test "$READY" -eq 1
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/client-auth-1
+          curl -fsSL "$BASE/server/src/client-auth.js" -o /tmp/client-auth.js
+          curl -fsSL "$BASE/server/src/client-mail.js" -o /tmp/client-mail.js
+          curl -fsSL "$BASE/server/src/server.js" -o /tmp/server.js
+          curl -fsSL "$BASE/web/gohouse-client-auth.js" -o /tmp/client-ui.js
+          curl -fsSL "$BASE/web/gohouse-push.js" -o /tmp/push.js
+          curl -fsSL "$BASE/migrations/002_client_accounts.sql" -o /tmp/migration.sql
+          node --check /tmp/client-auth.js
+          node --check /tmp/client-mail.js
+          node --check /tmp/server.js
+          node --check /tmp/client-ui.js
           node --check /tmp/push.js
-          node --check /tmp/sw.js
-          node --check /tmp/branding.js
-          grep -q 'Notification.requestPermission' /tmp/push.js
-          grep -q "addEventListener('push'" /tmp/sw.js
-          grep -q "addEventListener('notificationclick'" /tmp/sw.js
-          grep -q 'white-label-push-script' /tmp/branding.js
-          curl -fsSL "$HOST/api/health" -o /tmp/health.json
-          curl -fsSL "$HOST/api/push/public-key" -o /tmp/key.json
-          python3 - <<'PY'
-          import json
-          h=json.load(open('/tmp/health.json'))
-          k=json.load(open('/tmp/key.json'))
-          assert h.get('ok') is True and h.get('db') is True and h.get('push') is True, h
-          assert isinstance(k.get('publicKey'),str) and len(k['publicKey']) > 40, k
-          PY
-          echo 'LIVE_WEB_PUSH_RUNTIME_OK=true'
-          echo 'LIVE_SERVICE_WORKER_PUSH_OK=true'
-          echo 'LIVE_VAPID_OK=true'
+          grep -q '/api/auth/client/register' /tmp/server.js
+          grep -q '/api/auth/client/login' /tmp/server.js
+          grep -q '/api/auth/client/recover' /tmp/server.js
+          grep -q '/api/auth/client/reset' /tmp/server.js
+          grep -q 'clientRecoveryMail' /tmp/server.js
+          grep -q 'RESEND_API_KEY' /tmp/client-mail.js
+          grep -q 'Olvidé mi contraseña' /tmp/client-ui.js
+          grep -q 'Crear mi cuenta' /tmp/client-ui.js
+          grep -q 'gohouse-client-auth.js' /tmp/push.js
+          grep -q 'CREATE TABLE IF NOT EXISTS client_accounts' /tmp/migration.sql
+          echo 'CLIENT_AUTH_SHA='; sha256sum /tmp/client-auth.js
+          echo 'CLIENT_MAIL_SHA='; sha256sum /tmp/client-mail.js
+          echo 'SERVER_SHA='; sha256sum /tmp/server.js
+          echo 'CLIENT_UI_SHA='; sha256sum /tmp/client-ui.js
+          echo 'PUSH_SHA='; sha256sum /tmp/push.js
+          echo 'MIGRATION_SHA='; sha256sum /tmp/migration.sql
