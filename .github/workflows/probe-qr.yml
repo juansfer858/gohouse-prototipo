@@ -9,54 +9,28 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 2
     steps:
-      - name: Verify guided PWA install in production
+      - name: Validate complete Web Push payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          EXPECT_INSTALL=357296679412f73088d8da1b807ed6692d1c5ab0f7a17dd8f9f770fb3ec62aa4
-          EXPECT_BRANDING=d541aeff5d6606113ecd5bd5185c68c41fa3d8e2d09a8943422a51362aae06c8
-          READY=0
-          for attempt in $(seq 1 30); do
-            if curl -fsSL "$HOST/gohouse-install.js" -o /tmp/install.js 2>/dev/null && curl -fsSL "$HOST/gohouse-branding.js" -o /tmp/branding.js 2>/dev/null; then
-              I="$(sha256sum /tmp/install.js | awk '{print $1}')"
-              B="$(sha256sum /tmp/branding.js | awk '{print $1}')"
-              echo "attempt=$attempt install=$I branding=$B"
-              if [ "$I" = "$EXPECT_INSTALL" ] && [ "$B" = "$EXPECT_BRANDING" ]; then READY=1; break; fi
-            fi
-            sleep 10
-          done
-          test "$READY" -eq 1
-          node --check /tmp/install.js
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/push-1
+          curl -fsSL "$BASE/web/gohouse-push.js" -o /tmp/push-client.js
+          curl -fsSL "$BASE/web/service-worker.js" -o /tmp/sw.js
+          curl -fsSL "$BASE/web/gohouse-branding.js" -o /tmp/branding.js
+          curl -fsSL "$BASE/server/src/push.js" -o /tmp/push-server.js
+          node --check /tmp/push-client.js
+          node --check /tmp/sw.js
           node --check /tmp/branding.js
-          grep -q 'beforeinstallprompt' /tmp/install.js
-          grep -q 'Agregar a pantalla de inicio' /tmp/install.js
-          grep -q 'white-label-install-script' /tmp/branding.js
-          grep -q '/api/manifest.webmanifest?app=' /tmp/branding.js
-
-          curl -fsSL "$HOST/api/manifest.webmanifest?app=client" -o /tmp/client-manifest.json
-          curl -fsSL "$HOST/api/manifest.webmanifest?app=driver" -o /tmp/driver-manifest.json
-          python3 - <<'PY'
-          import json
-          for p in ('/tmp/client-manifest.json','/tmp/driver-manifest.json'):
-              x=json.load(open(p))
-              assert x.get('display') == 'standalone', x
-              assert x.get('name'), x
-              assert x.get('start_url'), x
-          PY
-
-          BROWSER=""
-          for c in google-chrome google-chrome-stable chromium chromium-browser; do
-            if command -v "$c" >/dev/null 2>&1; then BROWSER="$c"; break; fi
-          done
-          test -n "$BROWSER"
-          timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --window-size=390,844 --virtual-time-budget=7000 --dump-dom "$HOST/" >/tmp/client-dom.html 2>/tmp/client-browser.err || true
-          grep -q 'id="gh-install-backdrop"' /tmp/client-dom.html
-          grep -q 'Instala ' /tmp/client-dom.html
-
-          timeout 35s "$BROWSER" --headless --disable-gpu --no-sandbox --window-size=390,844 --virtual-time-budget=7000 --dump-dom "$HOST/domiciliario/" >/tmp/driver-dom.html 2>/tmp/driver-browser.err || true
-          grep -q 'id="gh-install-backdrop"' /tmp/driver-dom.html
-          grep -q 'App para domiciliarios' /tmp/driver-dom.html
-          echo 'LIVE_PWA_INSTALL_CLIENT_OK=true'
-          echo 'LIVE_PWA_INSTALL_DRIVER_OK=true'
+          node --check /tmp/push-server.js
+          grep -q 'Notification.requestPermission' /tmp/push-client.js
+          grep -q '/api/push/subscribe' /tmp/push-client.js
+          grep -q "addEventListener('push'" /tmp/sw.js
+          grep -q "addEventListener('notificationclick'" /tmp/sw.js
+          grep -q 'notifyClientChats' /tmp/push-server.js
+          grep -q 'Comprobante recibido' /tmp/push-server.js
+          grep -q 'white-label-push-script' /tmp/branding.js
+          echo 'CLIENT_PUSH_SHA='; sha256sum /tmp/push-client.js
+          echo 'SW_SHA='; sha256sum /tmp/sw.js
+          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
+          echo 'SERVER_PUSH_SHA='; sha256sum /tmp/push-server.js
