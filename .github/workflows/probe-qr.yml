@@ -9,33 +9,40 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 3
     steps:
-      - name: Verify Google Workspace recovery mail in production
+      - name: Validate isolated live fleet payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          EXPECT_MAIL=d5c4798294de7ebbd997630fa7f35588b4d3761238b3fca567cd6e11da4cef07
-          EXPECT_UI=42dae388b94c78cd9008902d3dae2f3813d5a975729e6302cbb438398305c72f
-          READY=0
-          for attempt in $(seq 1 36); do
-            if curl -fsSL "$HOST/gohouse-mail-config.js" -o /tmp/mail-ui.js 2>/dev/null && curl -fsSL "$HOST/panel/" -o /tmp/panel.html 2>/dev/null; then
-              U="$(sha256sum /tmp/mail-ui.js | awk '{print $1}')"
-              echo "attempt=$attempt ui=$U"
-              if [ "$U" = "$EXPECT_UI" ] && grep -q 'gohouse-mail-config.js' /tmp/panel.html; then READY=1; break; fi
-            fi
-            sleep 10
-          done
-          test "$READY" -eq 1
-          node --check /tmp/mail-ui.js
-          grep -q 'Correo y recuperación' /tmp/mail-ui.js
-          grep -q 'Google Workspace' /tmp/mail-ui.js
-          grep -q 'recoveryFromEmail' /tmp/mail-ui.js
-          curl -fsSL "$HOST/api/health" -o /tmp/health.json
-          python3 - <<'PY'
-          import json
-          h=json.load(open('/tmp/health.json'))
-          assert h.get('ok') is True and h.get('db') is True, h
-          PY
-          echo 'LIVE_MAIL_CONFIG_UI_OK=true'
-          echo 'LIVE_GOOGLE_WORKSPACE_RELAY_READY_FOR_ADMIN_SETUP=true'
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-1
+          curl -fsSL "$BASE/server/src/fleet.js" -o /tmp/fleet.js
+          curl -fsSL "$BASE/server/src/server.js" -o /tmp/server.js
+          curl -fsSL "$BASE/web/gohouse-fleet-driver.js" -o /tmp/driver.js
+          curl -fsSL "$BASE/web/gohouse-fleet-panel.js" -o /tmp/panel.js
+          curl -fsSL "$BASE/web/domiciliario/index.html" -o /tmp/driver-wrapper.html
+          curl -fsSL "$BASE/web/panel/index.html" -o /tmp/panel-wrapper.html
+          curl -fsSL "$BASE/migrations/003_driver_locations.sql" -o /tmp/fleet.sql
+          node --check /tmp/fleet.js
+          node --check /tmp/server.js
+          node --check /tmp/driver.js
+          node --check /tmp/panel.js
+          grep -q "/api/fleet/location" /tmp/server.js
+          grep -q "/api/fleet/live" /tmp/server.js
+          grep -q "/api/fleet/history/:driverId" /tmp/server.js
+          grep -q "principal?.type!=='driver'" /tmp/fleet.js
+          grep -q "principal?.type!=='panel'" /tmp/fleet.js
+          grep -q "watchPosition" /tmp/driver.js
+          grep -q "Ya recogí / compré" /tmp/driver.js
+          grep -q "Flota en vivo" /tmp/panel.js
+          grep -q "openstreetmap.org" /tmp/panel.js
+          grep -q "gohouse-fleet-driver.js" /tmp/driver-wrapper.html
+          grep -q "gohouse-fleet-panel.js" /tmp/panel-wrapper.html
+          grep -q "CREATE TABLE IF NOT EXISTS driver_location_events" /tmp/fleet.sql
+          grep -q "CREATE TABLE IF NOT EXISTS driver_last_location" /tmp/fleet.sql
+          echo 'FLEET_SHA='; sha256sum /tmp/fleet.js
+          echo 'SERVER_SHA='; sha256sum /tmp/server.js
+          echo 'DRIVER_SHA='; sha256sum /tmp/driver.js
+          echo 'PANEL_SHA='; sha256sum /tmp/panel.js
+          echo 'DRIVER_WRAPPER_SHA='; sha256sum /tmp/driver-wrapper.html
+          echo 'PANEL_WRAPPER_SHA='; sha256sum /tmp/panel-wrapper.html
+          echo 'MIGRATION_SHA='; sha256sum /tmp/fleet.sql
