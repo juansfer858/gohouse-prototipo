@@ -9,15 +9,29 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 6
     steps:
-      - name: Validate Publicidad reopen fix payload
+      - name: Verify Publicidad reopen fix in production
         run: |
           set -euo pipefail
-          URL=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/panel-nav-2/web/gohouse-panel-nav.js
-          curl -fsSL "$URL" -o /tmp/nav.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          EXPECT=c2389472990257edc70708666ff6d948653259e22fd1b725a6b259ce5a967458
+          READY=0
+          for attempt in $(seq 1 24); do
+            if curl -fsSL "$HOST/gohouse-panel-nav.js" -o /tmp/nav.js 2>/dev/null; then
+              GOT="$(sha256sum /tmp/nav.js | awk '{print $1}')"
+              echo "attempt=$attempt nav_sha=$GOT"
+              if [ "$GOT" = "$EXPECT" ]; then READY=1; break; fi
+            fi
+            sleep 10
+          done
+          test "$READY" -eq 1
           node --check /tmp/nav.js
           grep -q "ads.style.removeProperty('display')" /tmp/nav.js
-          grep -q "window.GoHouseAds?.openPanel?.()" /tmp/nav.js
-          echo 'NAV_SHA='
-          sha256sum /tmp/nav.js
+          curl -fsSL "$HOST/gohouse-publicidad.js" -o /tmp/ads.js
+          grep -q 'function panelView' /tmp/ads.js
+          grep -q 'async function openPanel' /tmp/ads.js
+          curl -fsSL "$HOST/panel/" -o /tmp/panel.html
+          grep -q 'gohouse-panel-nav.js' /tmp/panel.html
+          curl -fsSL "$HOST/api/health" | grep -q '"ok":true'
+          echo 'LIVE_PUBLICIDAD_REOPEN_FIX_OK=true'
