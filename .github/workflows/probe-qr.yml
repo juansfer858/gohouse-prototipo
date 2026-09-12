@@ -9,28 +9,45 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 7
     steps:
-      - name: Validate complete Web Push payload
+      - name: Verify Web Push release in production
         run: |
           set -euo pipefail
-          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/push-1
-          curl -fsSL "$BASE/web/gohouse-push.js" -o /tmp/push-client.js
-          curl -fsSL "$BASE/web/service-worker.js" -o /tmp/sw.js
-          curl -fsSL "$BASE/web/gohouse-branding.js" -o /tmp/branding.js
-          curl -fsSL "$BASE/server/src/push.js" -o /tmp/push-server.js
-          node --check /tmp/push-client.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          EXPECT_PUSH=49927586be709577c18cab1e4d32468110f7f5ca8b75649b9d733e06cdd284c2
+          EXPECT_SW=1573ac0840e31a87181b0d8c59cb40d3b8705366970d75176c63e38059144c42
+          EXPECT_BRANDING=6a30bcd15fd662c02d1ba6499393b8b4de03d16d33f34da7c157c35d2588fc5e
+          READY=0
+          for attempt in $(seq 1 30); do
+            if curl -fsSL "$HOST/gohouse-push.js" -o /tmp/push.js 2>/dev/null && \
+               curl -fsSL "$HOST/service-worker.js" -o /tmp/sw.js 2>/dev/null && \
+               curl -fsSL "$HOST/gohouse-branding.js" -o /tmp/branding.js 2>/dev/null; then
+              P="$(sha256sum /tmp/push.js | awk '{print $1}')"
+              S="$(sha256sum /tmp/sw.js | awk '{print $1}')"
+              B="$(sha256sum /tmp/branding.js | awk '{print $1}')"
+              echo "attempt=$attempt push=$P sw=$S branding=$B"
+              if [ "$P" = "$EXPECT_PUSH" ] && [ "$S" = "$EXPECT_SW" ] && [ "$B" = "$EXPECT_BRANDING" ]; then READY=1; break; fi
+            fi
+            sleep 10
+          done
+          test "$READY" -eq 1
+          node --check /tmp/push.js
           node --check /tmp/sw.js
           node --check /tmp/branding.js
-          node --check /tmp/push-server.js
-          grep -q 'Notification.requestPermission' /tmp/push-client.js
-          grep -q "api('/push/subscribe'" /tmp/push-client.js
+          grep -q 'Notification.requestPermission' /tmp/push.js
           grep -q "addEventListener('push'" /tmp/sw.js
           grep -q "addEventListener('notificationclick'" /tmp/sw.js
-          grep -q 'notifyClientChats' /tmp/push-server.js
-          grep -q 'Comprobante recibido' /tmp/push-server.js
           grep -q 'white-label-push-script' /tmp/branding.js
-          echo 'CLIENT_PUSH_SHA='; sha256sum /tmp/push-client.js
-          echo 'SW_SHA='; sha256sum /tmp/sw.js
-          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
-          echo 'SERVER_PUSH_SHA='; sha256sum /tmp/push-server.js
+          curl -fsSL "$HOST/api/health" -o /tmp/health.json
+          curl -fsSL "$HOST/api/push/public-key" -o /tmp/key.json
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          k=json.load(open('/tmp/key.json'))
+          assert h.get('ok') is True and h.get('db') is True and h.get('push') is True, h
+          assert isinstance(k.get('publicKey'),str) and len(k['publicKey']) > 40, k
+          PY
+          echo 'LIVE_WEB_PUSH_RUNTIME_OK=true'
+          echo 'LIVE_SERVICE_WORKER_PUSH_OK=true'
+          echo 'LIVE_VAPID_OK=true'
