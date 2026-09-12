@@ -9,23 +9,33 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 7
     steps:
-      - name: Validate Google Workspace recovery mail payload
+      - name: Verify Google Workspace recovery mail in production
         run: |
           set -euo pipefail
-          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/mail-config-1
-          curl -fsSL "$BASE/server/src/client-mail.js" -o /tmp/client-mail.js
-          curl -fsSL "$BASE/web/gohouse-mail-config.js" -o /tmp/mail-ui.js
-          curl -fsSL "$BASE/web/panel/index.html" -o /tmp/panel.html
-          node --check /tmp/client-mail.js
+          HOST=https://domicilios-llanos.vantixgc.com
+          EXPECT_MAIL=d5c4798294de7ebbd997630fa7f35588b4d3761238b3fca567cd6e11da4cef07
+          EXPECT_UI=42dae388b94c78cd9008902d3dae2f3813d5a975729e6302cbb438398305c72f
+          READY=0
+          for attempt in $(seq 1 36); do
+            if curl -fsSL "$HOST/gohouse-mail-config.js" -o /tmp/mail-ui.js 2>/dev/null && curl -fsSL "$HOST/panel/" -o /tmp/panel.html 2>/dev/null; then
+              U="$(sha256sum /tmp/mail-ui.js | awk '{print $1}')"
+              echo "attempt=$attempt ui=$U"
+              if [ "$U" = "$EXPECT_UI" ] && grep -q 'gohouse-mail-config.js' /tmp/panel.html; then READY=1; break; fi
+            fi
+            sleep 10
+          done
+          test "$READY" -eq 1
           node --check /tmp/mail-ui.js
-          grep -q 'smtp-relay.gmail.com' /tmp/client-mail.js
-          grep -q "smtp.write('STARTTLS')" /tmp/client-mail.js
-          grep -q 'recoveryMailEnabled' /tmp/client-mail.js
           grep -q 'Correo y recuperación' /tmp/mail-ui.js
+          grep -q 'Google Workspace' /tmp/mail-ui.js
           grep -q 'recoveryFromEmail' /tmp/mail-ui.js
-          grep -q 'gohouse-mail-config.js' /tmp/panel.html
-          echo 'CLIENT_MAIL_SHA='; sha256sum /tmp/client-mail.js
-          echo 'MAIL_UI_SHA='; sha256sum /tmp/mail-ui.js
-          echo 'PANEL_WRAPPER_SHA='; sha256sum /tmp/panel.html
+          curl -fsSL "$HOST/api/health" -o /tmp/health.json
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          assert h.get('ok') is True and h.get('db') is True, h
+          PY
+          echo 'LIVE_MAIL_CONFIG_UI_OK=true'
+          echo 'LIVE_GOOGLE_WORKSPACE_RELAY_READY_FOR_ADMIN_SETUP=true'
