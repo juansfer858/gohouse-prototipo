@@ -1,12 +1,12 @@
 {
-  "version": "2026.09.12-white-label.25",
-  "published_at": "2026-09-12T20:10:30Z",
+  "version": "2026.09.12-white-label.26",
+  "published_at": "2026-09-12T20:23:00Z",
   "status": "release",
   "files": [
     {
       "path": "web/gohouse-fleet-driver.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-2/web/gohouse-fleet-driver.js",
-      "sha256": "2760f3370db76197d1347dfed572e4f8d49e00868f04de2c8c2e00a8fe7dbff5"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-3/web/gohouse-fleet-driver.js",
+      "sha256": "2b27055d87ba89d3e13fb347f9791808f4a1be80b89bee5b17f5aa7689f49d6c"
     }
   ],
   "delete": [],
