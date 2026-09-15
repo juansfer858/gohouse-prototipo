@@ -1,0 +1,80 @@
+name: Verify published tariff release
+on:
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths: ['release/version.json', 'release/payload/tarifas-2/**', '.github/workflows/verify-tariff-release.yml']
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['release/version.json', '.github/workflows/verify-tariff-release.yml']
+permissions:
+  contents: read
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate immutable source hashes and exact payload scope
+        run: |
+          python3 - <<'PY'
+          import pathlib,json,hashlib,re,subprocess
+          m=json.loads(pathlib.Path('release/version.json').read_text())
+          assert m['version']=='2026.09.15-white-label.27'
+          expected={'web/gohouse-panel.html','web/gohouse-cliente.html','web/gohouse-domiciliarios.html','web/gohouse-branding.js','web/gohouse-tarifas.js','server/src/tarifas.js','server/src/server.js'}
+          assert {x['path'] for x in m['files']}==expected and not m['delete'] and len(m['migrations'])==1
+          for x in m['files']+m['migrations']:
+              match=re.fullmatch(r'https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/([a-f0-9]{40})/(release/payload/tarifas-2/.+)',x['url'])
+              assert match,x['url']
+              source,p=match.groups();b=subprocess.check_output(['git','show',source+':'+p]);assert hashlib.sha256(b).hexdigest()==x['sha256']
+              assert pathlib.Path(p).read_bytes()==b,'Current payload differs from tested release: '+p
+          print('PASS: 7 immutable files + one SQL migration; no deletion or unrelated project.')
+          PY
+  deployed-read-only:
+    if: github.event_name == 'push'
+    needs: manifest
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify auto-deployment with public GET requests only
+        run: |
+          python3 - <<'PY'
+          import urllib.request,urllib.error,pathlib,json,hashlib,time
+          m=json.loads(pathlib.Path('release/version.json').read_text())
+          base='https://domicilios-llanos.vantixgc.com'
+          def get(p):
+              r=urllib.request.Request(base+p,headers={'Cache-Control':'no-cache','User-Agent':'GoHouse-authorized-release-verification'})
+              return urllib.request.urlopen(r,timeout=15).read()
+          report={'deploymentVerified':False,'version':m['version'],'writesPerformed':0}
+          pathlib.Path('release-verification').mkdir(exist_ok=True)
+          try:
+              for attempt in range(30):
+                  try:
+                      catalog=json.loads(get('/api/public/tarifas'))
+                      if catalog.get('version')=='2026.09.15-tarifas.2':break
+                  except Exception as e: print('Waiting for existing auto-deploy:',attempt+1,type(e).__name__)
+                  time.sleep(5)
+              else:raise RuntimeError('VPS has not published the tariff module yet')
+              hashes={}
+              for x in m['files']:
+                  if x['path'].startswith('web/'):
+                      public='/'+x['path'][4:];actual=hashlib.sha256(get(public+'?release=20260915.2')).hexdigest()
+                      assert actual==x['sha256'],'Published hash mismatch: '+public
+                      hashes[public]=actual
+              health=json.loads(get('/api/health'));assert health.get('ok') is True and health.get('db') is True
+              expected={'estandar':4000,'el-rocio':5000,'la-sonora':5000,'el-peaje':5000,'el-batallon':7000,'la-piedra':7000,'el-chaquiro':1000,'vallecitos':17000,'santa-rosa':45000,'yarula':50000,'san-jose':45000}
+              actual={z['id']:z['tarifa'] for z in catalog['zones']};assert actual==expected,'Initial catalog differs from approved values'
+              try:get('/api/tarifas');raise RuntimeError('Admin endpoint must require authentication')
+              except urllib.error.HTTPError as e:assert e.code==401
+              assert b'gohouse-panel.html' in get('/panel/')
+              report.update(deploymentVerified=True,tariffVersion=catalog['version'],referenceCount=len(actual),fees=actual,publishedHashes=hashes,health={'ok':health['ok'],'db':health['db']},adminAnonymousStatus=401)
+              print(json.dumps(report,ensure_ascii=False,indent=2))
+          finally:pathlib.Path('release-verification/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: published-tariff-verification
+          path: release-verification
