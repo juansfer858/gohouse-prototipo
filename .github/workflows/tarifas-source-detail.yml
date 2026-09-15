@@ -1,0 +1,38 @@
+name: Tarifas source detail
+on:
+  push:
+    branches: ['fix/tarifas-panel-20260915']
+    paths: ['.github/workflows/tarifas-source-detail.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read deployed static contracts only
+        run: |
+          python3 - <<'PY'
+          import urllib.request, re, hashlib
+          base='https://domicilios-llanos.vantixgc.com'
+          seen=set()
+          def read(p):
+              b=urllib.request.urlopen(base+p,timeout=20).read();s=b.decode('utf-8');print('\nFILE',p,'SHA',hashlib.sha256(b).hexdigest());return s
+          scripts=set()
+          for p in ['/gohouse-panel.html','/gohouse-cliente.html','/gohouse-domiciliarios.html']:
+              s=read(p);lines=s.splitlines();scripts.update(re.findall(r'<script[^>]+src=[\"\x27]([^\"\x27]+)',s))
+              pat=r'function (?:renderAjustes|saveShared|loadShared|.*[Ee]ntrega.*|.*[Pp]edido.*)|const (?:dbRef|nuevoPedido|order)|tarifa:|valorServicio|in-valor-servicio|btn-confirmar|async function api|GoHouseVPS|firebase.*\.js'
+              indices=set()
+              for i,line in enumerate(lines):
+                  if re.search(pat,line): indices.update(range(max(0,i-2),min(len(lines),i+32)))
+              for i in sorted(indices):
+                  if len(lines[i])<2000: print(str(i+1)+': '+lines[i])
+          print('SCRIPT SOURCES',sorted(scripts))
+          for p in sorted(scripts):
+              if p.startswith(('http:','https:','//')): continue
+              p='/'+p.lstrip('/')
+              if any(x in p for x in ['compat','vps','firebase','bridge']):
+                  s=read(p)
+                  for i,line in enumerate(s.splitlines(),1):
+                      if len(line)<2000: print(str(i)+': '+line)
+          PY
