@@ -16,7 +16,8 @@ export async function withTx(fn){const c=await pool.connect();try{await c.query(
 (target/'src/util.js').write_text("""// TEST ONLY: dependency adapters for the retained production store.
 import crypto from 'node:crypto';
 export const splitPath=p=>Array.isArray(p)?p:String(p||'').split('/').filter(Boolean);
-export const safeEmailKey=e=>String(e||'').replace(/[.#$\\/\\[\\]]/g,'_');
+// Match emailAKey in the actual published panel HTML.
+export const safeEmailKey=e=>String(e||'').toLowerCase().replace(/\\./g,',');
 export const pushKey=()=>crypto.randomUUID();
 export function getAtPath(root,p){return splitPath(p).reduce((x,k)=>x?.[k],root)??null;}
 export function setAtPath(root,p,v){const keys=splitPath(p);if(!keys.length)return structuredClone(v);const out=structuredClone(root);let n=out;for(const k of keys.slice(0,-1))n=n[k]??=( {} );n[keys.at(-1)]=structuredClone(v);return out;}
