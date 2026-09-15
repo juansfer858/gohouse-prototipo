@@ -1,10 +1,12 @@
 import crypto from 'node:crypto';
+import { withTx } from './db.js';
 
 export const TARIFF_VERSION = '2026.09.15-tarifas.2';
 const STANDARD = 'estandar';
 const sameName = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').replace(/\s+/g, ' ').trim();
 const fail = (code, status = 400) => { throw Object.assign(new Error(code), { status }); };
-export const tariffRevision = zones => crypto.createHash('sha256').update(JSON.stringify(zones)).digest('hex');
+// jsonb reorders object keys: hash explicit ordered tuples, not object serialization.
+export const tariffRevision = zones => crypto.createHash('sha256').update(JSON.stringify(zones.map(z => [z.id,z.nombre,z.tarifa,z.activa,!!z.predeterminada,z.orden]))).digest('hex');
 export function validateZone(body, zones, existing = null) {
   const nombre = typeof body?.nombre === 'string' ? body.nombre.trim().replace(/\s+/g, ' ') : '';
   const tarifa = body?.tarifa;
@@ -49,21 +51,20 @@ export function registerTariffRoutes(app, { pool, authMiddleware, broadcast }) {
     res.set('Cache-Control', 'no-store').json({ zones, revision: tariffRevision(zones), version: TARIFF_VERSION });
   }));
   const mutate = operation => route(async (req, res) => {
-    const connection = await pool.connect(); let response;
-    try {
-      await connection.query('BEGIN');
+    const response = await withTx(async connection => {
       const { rows } = await connection.query('SELECT data FROM app_state WHERE id=1 FOR UPDATE');
       const data = rows[0]?.data;
       admin(req.principal, data);
       const zones = readZones(data);
       if (typeof req.body?.revision !== 'string' || req.body.revision !== tariffRevision(zones)) fail('TARIFF_REVISION_CONFLICT', 409);
-      let updated, zone;
+      let updated, zone, previous = null;
       if (operation === 'create') {
         zone = validateZone(req.body, zones);
         updated = [...zones, zone];
       } else {
         zone = zones.find(z => z.id === req.params.id);
         if (!zone) fail('TARIFF_NOT_FOUND', 404);
+        previous = zone;
         if (operation === 'delete') {
           if (zone.id === STANDARD) fail('TARIFF_STANDARD_PROTECTED');
           updated = zones.filter(z => z.id !== zone.id);
@@ -74,11 +75,9 @@ export function registerTariffRoutes(app, { pool, authMiddleware, broadcast }) {
       }
       await connection.query("SELECT set_config('gohouse.tariff_edit','allowed',true)");
       await connection.query("UPDATE app_state SET data=jsonb_set(data::jsonb,'{gohouse-data,config,tarifasZonas}',$1::jsonb,true),version=version+1,updated_at=now() WHERE id=1", [JSON.stringify(updated)]);
-      await connection.query('COMMIT');
-      response = { ok: true, zones: updated, revision: tariffRevision(updated), zoneId: zone.id };
-    } catch (error) {
-      await connection.query('ROLLBACK').catch(() => {}); throw error;
-    } finally { connection.release(); }
+      await connection.query('INSERT INTO audit_log(actor_type,actor_id,action,path,metadata) VALUES($1,$2,$3,$4,$5)', ['panel',req.principal.uid || req.principal.email,'tarifa_'+operation,'gohouse-data/config/tarifasZonas/'+zone.id,JSON.stringify({before:previous,after:operation==='delete'?null:zone})]);
+      return { ok: true, zones: updated, revision: tariffRevision(updated), zoneId: zone.id };
+    });
     broadcast('gohouse-data/config');
     res.status(operation === 'create' ? 201 : 200).json(response);
   });
