@@ -1,0 +1,38 @@
+name: Tarifas panel check
+on:
+  push:
+    branches: ['fix/tarifas-panel-20260915']
+  pull_request:
+    branches: [gohouse-vps-recovery]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Inspect deployed public assets (read only)
+        run: |
+          python3 - <<'PY'
+          import urllib.request, hashlib, re, subprocess, pathlib
+          base='https://domicilios-llanos.vantixgc.com'
+          for p in ['/api/health','/panel/','/gohouse-tarifas.js','/gohouse-branding.js','/gohouse-panel-nav.js','/gohouse-vps.js']:
+              try:
+                  req=urllib.request.Request(base+p,headers={'Cache-Control':'no-cache','User-Agent':'GoHouse-authorized-read-only-check'})
+                  b=urllib.request.urlopen(req, timeout=20).read(); s=b.decode('utf-8'); print('\nASSET',p,'SHA256',hashlib.sha256(b).hexdigest(),'BYTES',len(b))
+                  if p=='/api/health': print(s[:2000])
+                  elif p=='/panel/': print(s[:8000])
+                  else:
+                      for i,line in enumerate(s.splitlines(),1):
+                          if re.search(r'loadShared|saveShared|tarifas|Comisi|renderAjustes|vista-ajustes|auth/session|gohouse-vps|gohouse-app-shell|script|config',line,re.I):
+                              print(str(i)+': '+line[:1200])
+              except Exception as e: print('READ_ERROR',p,str(e))
+          print('\nSOURCE RECENCY')
+          files=list(pathlib.Path('release/payload').rglob('server.js'))+list(pathlib.Path('release/payload').rglob('gohouse-branding.js'))+list(pathlib.Path('release/payload').rglob('gohouse-panel-nav.js'))
+          for p in files:
+              stamp=subprocess.check_output(['git','log','-1','--format=%cI %h %s','--',str(p)],text=True).strip()
+              print(str(p),stamp)
+          PY
