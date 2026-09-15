@@ -9,35 +9,28 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 4
     steps:
-      - name: Verify GPS freeze hotfix in production
+      - name: Validate tariff zones payload
         run: |
           set -euo pipefail
-          HOST=https://domicilios-llanos.vantixgc.com
-          EXPECT=2b27055d87ba89d3e13fb347f9791808f4a1be80b89bee5b17f5aa7689f49d6c
-          READY=0
-          for attempt in $(seq 1 36); do
-            if curl -fsSL "$HOST/gohouse-fleet-driver.js" -o /tmp/driver.js 2>/dev/null; then
-              SHA="$(sha256sum /tmp/driver.js | awk '{print $1}')"
-              echo "attempt=$attempt sha=$SHA"
-              if [ "$SHA" = "$EXPECT" ]; then READY=1; break; fi
-            fi
-            sleep 10
-          done
-          test "$READY" -eq 1
-          node --check /tmp/driver.js
-          grep -q 'ACTIVAR UBICACIÓN' /tmp/driver.js
-          grep -q 'lastCardKey' /tmp/driver.js
-          grep -q 'new MutationObserver(() => patchActions())' /tmp/driver.js
-          ! grep -q 'new MutationObserver(()=>{patchActions();renderPermissionCard();})' /tmp/driver.js
-          grep -q 'SOLICITANDO UBICACIÓN' /tmp/driver.js
-          grep -q 'watchPosition' /tmp/driver.js
-          curl -fsSL "$HOST/api/health" -o /tmp/health.json
-          python3 - <<'PY'
-          import json
-          h=json.load(open('/tmp/health.json'))
-          assert h.get('ok') is True and h.get('db') is True and h.get('fleet') is True, h
-          PY
-          echo 'LIVE_GPS_FREEZE_FIX_OK=true'
-          echo 'LIVE_FLEET_STILL_OK=true'
+          BASE=https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/tarifas-1
+          curl -fsSL "$BASE/web/gohouse-tarifas.js" -o /tmp/tarifas.js
+          curl -fsSL "$BASE/web/gohouse-branding.js" -o /tmp/branding.js
+          curl -fsSL "$BASE/migrations/004_tariff_zones.sql" -o /tmp/tarifas.sql
+          node --check /tmp/tarifas.js
+          node --check /tmp/branding.js
+          grep -q '+ Agregar referencia' /tmp/tarifas.js
+          grep -q 'Servicio estándar' /tmp/tarifas.sql
+          grep -q 'Vallecitos' /tmp/tarifas.sql
+          grep -q 'Santa Rosa' /tmp/tarifas.sql
+          grep -q 'Yarula' /tmp/tarifas.sql
+          grep -q 'San José' /tmp/tarifas.sql
+          grep -q '"tarifa":50000' /tmp/tarifas.sql
+          grep -q 'zonaTarifaId' /tmp/tarifas.js
+          grep -q 'tarifaFijada' /tmp/tarifas.js
+          grep -q 'white-label-tarifas-script' /tmp/branding.js
+          grep -q '/gohouse-tarifas.js' /tmp/branding.js
+          echo 'TARIFFS_SHA='; sha256sum /tmp/tarifas.js
+          echo 'BRANDING_SHA='; sha256sum /tmp/branding.js
+          echo 'MIGRATION_SHA='; sha256sum /tmp/tarifas.sql
