@@ -1,0 +1,63 @@
+name: Verify tariff references
+on:
+  push:
+    branches: ['fix/tarifas-panel-20260915']
+    paths: ['release/payload/tarifas-2/**', 'tests/tarifas/**', '.github/workflows/verify-tarifas-v2.yml']
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths: ['release/payload/tarifas-2/**', 'release/version.json', 'tests/tarifas/**', '.github/workflows/verify-tarifas-v2.yml']
+permissions:
+  contents: read
+concurrency:
+  group: tariffs-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  contracts-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: gohouse_tarifas_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-tariff-test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:isolated-tariff-test@127.0.0.1:5432/gohouse_tarifas_test
+      JWT_SECRET: isolated-test-secret-not-for-production-20260915
+      GOHOUSE_TEST_ONLY: '1'
+      GOHOUSE_SOURCE_ROOT: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reconstruct canonical backend without production access
+        run: python3 tests/tarifas/rebuild.py
+      - name: Install disposable test dependencies
+        working-directory: /tmp/gohouse-tarifas-test/server
+        run: |
+          npm install --no-audit --no-fund --omit=dev
+          npm install --no-audit --no-fund --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify real store transactions and browser contracts
+        working-directory: /tmp/gohouse-tarifas-test/server
+        run: node tariff-tests.mjs
+      - name: Retain test evidence and dependency contracts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tariff-reference-evidence
+          path: |
+            tests/tarifas/results
+            /tmp/gohouse-tarifas-test/server/src/db.js
+            /tmp/gohouse-tarifas-test/server/src/config.js
+            /tmp/gohouse-tarifas-test/server/src/util.js
