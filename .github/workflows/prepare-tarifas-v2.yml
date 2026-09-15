@@ -19,6 +19,27 @@ jobs:
           ref: fix/tarifas-panel-20260915
       - name: Prepare exact patches without production writes
         run: python3 tools/prepare-tarifas-v2.py
+      - name: Ensure browsers load the released controller
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,subprocess,tempfile
+          out=Path('release/payload/tarifas-2/web')
+          for name in ['gohouse-panel.html','gohouse-cliente.html','gohouse-domiciliarios.html']:
+              p=out/name
+              s=(Path('tests/tarifas/fixtures')/name).read_text() if name=='gohouse-panel.html' else p.read_text()
+              s,count=re.subn(r'(src=["\x27])([^"\x27]*gohouse-branding\.js)(["\x27])',r'\1\2?v=20260915.2\3',s)
+              assert count==1,(name,count)
+              if name=='gohouse-domiciliarios.html':
+                  s=s.replace('Tarifa definida por el cliente; no requiere digitación.','Tarifa de la referencia seleccionada; valor fijado al solicitar.')
+                  assert s.count('¿Cuánto vale el domicilio?')==1
+                  s=s.replace('¿Cuánto vale el domicilio?',"${miPedidoActivo.tarifaFijada ? 'Valor del domicilio (fijado)' : '¿Cuánto vale el domicilio?'}")
+              p.write_text(s)
+              for body in re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S):
+                  if not body.strip():continue
+                  with tempfile.NamedTemporaryFile(mode='w',suffix='.js') as f:
+                      f.write(body);f.flush();subprocess.run(['node','--check',f.name],check=True)
+          PY
       - name: Check generated JavaScript
         run: |
           node --check release/payload/tarifas-2/server/src/server.js
