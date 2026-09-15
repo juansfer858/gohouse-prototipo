@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script defer src="gohouse-branding.js"></script>
+<script defer src="gohouse-branding.js?v=20260915.2"></script>
 <title>Domiciliarios</title>
 <link rel="manifest" href="/api/manifest.webmanifest?app=driver">
 <meta name="theme-color" content="#0F1B2B">
@@ -810,7 +810,7 @@ function render(){
       boton = `
         <label style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; display:block; margin:10px 0 4px;">¿Cuánto vale lo que vas a llevar? Pon 0 si no compraste nada (solo transporte)</label>
         <input type="number" id="in-valor-compra" placeholder="Ej: 25000" style="width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; margin-bottom:10px;">
-        <label style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; display:block; margin:10px 0 4px;">¿Cuánto vale el domicilio?</label>
+        <label style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; display:block; margin:10px 0 4px;">${miPedidoActivo.tarifaFijada ? 'Valor del domicilio (fijado)' : '¿Cuánto vale el domicilio?'}</label>
         <input type="number" id="in-valor-servicio-salida" value="${miPedidoActivo.tarifaFijada ? miPedidoActivo.tarifa : cfg.valorSugerido}" ${miPedidoActivo.tarifaFijada ? 'readonly aria-readonly="true"' : ''} data-comision="${miPedidoActivo.comisionCasa ?? 0}" oninput="actualizarPreviewGananciaSalida()" style="width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; margin-bottom:6px;">
         <div class="hint" id="preview-ganancia-salida" style="margin-top:0; margin-bottom:10px;"></div>
         <button class="btn btn-camino" onclick="marcarEnCamino('${miPedidoActivo.id}')">Salir hacia el cliente</button>
@@ -837,7 +837,7 @@ function render(){
           <div class="cliente">${escapeHtml(miPedidoActivo.cliente)}</div>
           <div class="direccion">${escapeHtml(miPedidoActivo.direccion)}${miPedidoActivo.telefono ? ' · ' + escapeHtml(miPedidoActivo.telefono) : ''}</div>
           <div class="pedido-text">${escapeHtml(miPedidoActivo.pedido)}</div>
-          ${miPedidoActivo.tarifaFijada ? `<div class="hint" id="gh-driver-fixed-tariff"><b>${escapeHtml(miPedidoActivo.zonaTarifaNombre)} · Domicilio: $${Number(miPedidoActivo.tarifa).toLocaleString('es-CO')}</b><br>Tarifa definida por el cliente; no requiere digitación.</div>` : ''}
+          ${miPedidoActivo.tarifaFijada ? `<div class="hint" id="gh-driver-fixed-tariff"><b>${escapeHtml(miPedidoActivo.zonaTarifaNombre)} · Domicilio: $${Number(miPedidoActivo.tarifa).toLocaleString('es-CO')}</b><br>Tarifa de la referencia seleccionada; valor fijado al solicitar.</div>` : ''}
           <div class="badge-row">
             <span class="badge badge-pago">${miPedidoActivo.pago}</span>
             <span class="badge badge-time">${fmtTime(miPedidoActivo.createdAt)}</span>
