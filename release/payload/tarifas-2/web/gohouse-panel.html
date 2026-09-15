@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script defer src="gohouse-branding.js?v=20260915.2"></script>
+<title>Panel de domicilios</title>
+<link rel="manifest" href="/api/manifest.webmanifest?app=panel">
+<meta name="theme-color" content="#0F1B2B">
+<link rel="icon" href="brand-placeholder.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Domicilios">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #16231F;
+    --surface: #1E312B;
+    --surface-2: #24392F;
+    --line: #33473D;
+    --mango: #E8863A;
+    --mango-dim: #6B4A2A;
+    --green: #5FBF8B;
+    --green-dim: #2E4A3B;
+    --red: #E1685F;
+    --red-dim: #4A2E2C;
+    --gray: #7D8D86;
+    --text: #F3EFE6;
+    --text-dim: #A9B8B0;
+    --paper: #F3EFE6;
+    --paper-text: #22301F;
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header{
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .logo-row{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+
+  .logo-mark{
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px var(--line);
+  }
+  .logo-mark img{ width: 100%; height: 100%; object-fit: cover; display:block; }
+
+  .brand h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    margin: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  .brand .tag{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--mango);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .logo-note{
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .stats{
+    display:flex;
+    gap: 20px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat{ display:flex; flex-direction: column; }
+  .stat .n{ font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 600; line-height: 1; }
+  .stat .l{ font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+  main{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .pedidos-grid{
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 800px){ .pedidos-grid{ grid-template-columns: 1fr; } }
+
+
+  section h2{
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    display:flex; align-items:center; gap: 8px;
+  }
+  section h2 .count{ font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); font-weight: 400; }
+
+  .new-order{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .new-order .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px){ .new-order .grid{ grid-template-columns: 1fr; } }
+
+  label{ font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; display:block; margin-bottom: 4px; }
+
+  input, textarea, select{
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 9px 10px;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+  }
+  input:focus, textarea:focus, select:focus{ outline: 2px solid var(--mango); outline-offset: 1px; }
+  textarea{ resize: vertical; min-height: 44px; }
+
+  .field{ margin-bottom: 10px; }
+  .field.full{ grid-column: 1 / -1; }
+
+  .btn{
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--mango); color: #1C1108; }
+  .btn-primary:hover{ opacity: 0.92; }
+  .btn-ghost{ background: transparent; border: 1px solid var(--line); color: var(--text); }
+  .btn-sm{ padding: 6px 10px; font-size: 0.75rem; }
+  .btn-full{ width: 100%; }
+  .btn-danger-ghost{ background: transparent; border: 1px solid var(--red); color: var(--red); }
+
+  .ticket{
+    background: var(--paper);
+    color: var(--paper-text);
+    border-radius: 4px;
+    padding: 14px 16px 14px;
+    margin-bottom: 14px;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+
+  .ticket-demorado{
+    animation: parpadeoRojo 1s steps(1) infinite;
+  }
+  .ticket-demorado .tiempo-espera{
+    font-weight: 700;
+  }
+  @keyframes parpadeoRojo{
+    0%, 49%{
+      background: var(--paper);
+      color: var(--paper-text);
+    }
+    50%, 100%{
+      background: #ff3b3b;
+      color: #ffffff;
+    }
+  }
+  .ticket-demorado .cliente,
+  .ticket-demorado .direccion,
+  .ticket-demorado .pedido-text,
+  .ticket-demorado .ticket-id,
+  .ticket-demorado .ticket-time,
+  .ticket-demorado .tiempo-espera,
+  .ticket-demorado .waiting-note{
+    color: inherit !important;
+  }
+  .ticket::before{
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background-image: radial-gradient(circle, var(--bg) 3px, transparent 3.2px);
+    background-size: 14px 12px; background-position: -2px -6px; background-repeat: repeat-x;
+  }
+  .ticket-top{ display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-top: 4px; }
+  .ticket-id{ font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #6B7A63; }
+  .ticket-time{ font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #6B7A63; }
+  .ticket .cliente{ font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; margin: 2px 0; }
+  .ticket .direccion{ font-size: 0.85rem; color: #4A5A44; margin-bottom: 6px; }
+  .ticket .pedido-text{ font-size: 0.88rem; border-top: 1px dashed #C9C2AD; border-bottom: 1px dashed #C9C2AD; padding: 8px 0; margin: 8px 0; white-space: pre-wrap; }
+
+  .badge-row{ display:flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .badge{ font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; padding: 2px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge-pago{ background: #E3DECC; color: #4A4326; }
+  .badge-estado-nuevo{ background: var(--mango); color: #1C1108; }
+  .badge-estado-aceptado{ background: #D7CFA8; color: #4A4326; }
+  .badge-estado-camino{ background: #C9E4D6; color: #234433; }
+  .badge-estado-cancelado{ background: #ffd6d6; color: #a12626; }
+
+  .ticket-actions{ display:flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .ticket-actions .btn{ font-size: 0.78rem; padding: 7px 12px; }
+  .repartidor-tag{ font-size: 0.82rem; color: #234433; font-weight: 600; }
+  .waiting-note{ font-size: 0.8rem; color: #8A7A50; font-style: italic; }
+
+  .empty{ color: var(--text-dim); font-size: 0.85rem; border: 1px dashed var(--line); border-radius: 8px; padding: 20px; text-align: center; }
+
+  .summary-line{ display:flex; justify-content: space-between; font-size: 0.88rem; padding: 8px 0; border-bottom: 1px solid var(--line); }
+
+  .repartidor-card{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 10px; display:flex; align-items:center; justify-content: space-between; gap: 10px;
+  }
+  .repartidor-info{ display:flex; align-items:center; gap: 10px; }
+  .repartidor-detalle-activo{
+    margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line);
+  }
+  .dot{ width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .dot-disponible{ background: var(--green); box-shadow: 0 0 0 3px var(--green-dim); }
+  .dot-en_ruta{ background: var(--mango); box-shadow: 0 0 0 3px var(--mango-dim); }
+  .dot-fuera{ background: var(--gray); box-shadow: 0 0 0 3px #3A4A44; }
+  .repartidor-name{ font-weight: 600; font-size: 0.92rem; }
+  .repartidor-estado{ font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; }
+  .icon-btn{
+    background: var(--bg); border: 1px solid var(--line); color: var(--text-dim); border-radius: 5px;
+    width: 26px; height: 26px; display:flex; align-items:center; justify-content:center; cursor: pointer; font-size: 0.75rem;
+  }
+  .icon-btn:hover{ color: var(--red); border-color: var(--red); }
+  .add-repartidor{ display:flex; gap: 8px; margin-top: 6px; }
+  .add-repartidor input{ flex: 1; }
+
+  .history-toggle{
+    background: none; border: none; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; margin-top: 6px;
+  }
+  .history-item{ font-size: 0.8rem; color: var(--text-dim); padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+
+  .history-item-detailed{
+    border-bottom: 1px solid var(--line);
+    padding: 10px 4px;
+    cursor: pointer;
+  }
+  .history-top-row{
+    display: flex; justify-content: space-between; gap: 8px;
+    font-size: 0.8rem; color: var(--text-dim);
+  }
+  .history-top-row .ver-mas{ color: var(--mango); font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; margin-left: 6px; }
+  .history-detalle{
+    margin-top: 10px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .toast{
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+    padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease; z-index: 50;
+  }
+  .toast.show{ opacity: 1; }
+  .loading-note{ color: var(--text-dim); font-size: 0.8rem; padding: 20px; text-align: center; }
+  .modal-overlay{
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; padding: 20px;
+  }
+  .modal-box{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; max-width: 380px; width: 100%;
+  }
+  .btn-full{ width: 100%; }
+  .btn-ancho-activo{ border-color: var(--mango) !important; color: var(--mango) !important; }
+
+  #pos-print-area{ display: none; }
+
+  .chat-panel-modal{
+    position: fixed; bottom: 20px; right: 20px; left: 20px; max-width: 380px; margin: 0 auto;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 61;
+    display: flex; flex-direction: column; height: 60vh; max-height: 460px;
+  }
+  .chat-header{
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 0.9rem;
+  }
+  .chat-close{ background: none; border: none; color: var(--text-dim); font-size: 1rem; cursor: pointer; }
+  .chat-mensajes{ flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-msg{ max-width: 78%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.35; }
+  .chat-msg.propio{ align-self: flex-end; background: var(--mango); color: #1a1204; border-bottom-right-radius: 4px; }
+  .chat-msg.ajeno{ align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
+  .chat-msg .chat-hora{ display: block; font-size: 0.6rem; opacity: 0.7; margin-top: 3px; }
+  .chat-input-row{ display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+  .chat-input-row input[type="text"]{ flex: 1; margin: 0; }
+  .chat-input-row button{
+    background: var(--mango); border: none; color: #1a1204; width: 40px; border-radius: 8px; font-size: 1rem; cursor: pointer; flex-shrink:0;
+  }
+
+  @media print{
+    body > *{ display: none !important; }
+    #pos-print-area{
+      display: block !important;
+      font-family: 'JetBrains Mono', monospace;
+      color: #000;
+      font-size: 12px;
+    }
+    #pos-print-area .pos-center{ text-align: center; }
+    #pos-print-area .pos-line{ border-top: 1px dashed #000; margin: 6px 0; }
+    #pos-print-area .pos-row{ display: flex; justify-content: space-between; }
+    #pos-print-area .pos-firma{ margin-top: 30px; border-top: 1px solid #000; padding-top: 4px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-mark"><img src="brand-placeholder.svg" alt="Logo GO! House Mensajería"></div>
+    <div class="brand">
+      <h1>¡GO! HOUSE</h1>
+      <span class="tag">Panel operativo · GoHouse Mensajería</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="btn-logout" style="display:none;" onclick="cerrarSesionPanel()">Salir</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="n" id="stat-nuevos">0</span><span class="l">Buscando domiciliario</span></div>
+    <div class="stat"><span class="n" id="stat-curso">0</span><span class="l">En curso</span></div>
+    <div class="stat"><span class="n" id="stat-entregados">0</span><span class="l">Entregados hoy</span></div>
+    <div class="stat"><span class="n" id="stat-disponibles">0</span><span class="l">Domiciliarios libres</span></div>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div id="login-box" class="modal-box" style="max-width:340px; margin:60px auto; display:none;">
+  <h2 style="margin-top:0;">Acceso al panel</h2>
+  <div class="empty" style="text-align:left; padding:12px 14px; margin-bottom:14px;">
+    Este panel es solo para personal autorizado de GoHouse.
+  </div>
+  <label>Correo</label>
+  <input type="email" id="login-email" placeholder="tucorreo@ejemplo.com">
+  <label>Contraseña</label>
+  <input type="password" id="login-password" placeholder="••••••••">
+  <div id="login-error" style="color:#ff6b6b; font-size:0.8rem; margin-bottom:10px; display:none;"></div>
+  <button class="btn btn-primary btn-full" onclick="iniciarSesionPanel()">Iniciar sesión</button>
+</div>
+
+<div id="bootstrap-box" class="modal-box" style="max-width:390px; margin:60px auto; display:none;">
+  <h2 style="margin-top:0;">Configuración inicial</h2>
+  <div class="empty" style="text-align:left; padding:12px 14px; margin-bottom:14px;">
+    Crea el administrador principal. Esta pantalla desaparece definitivamente después de crear la primera cuenta.
+  </div>
+  <label>Correo del administrador</label>
+  <input type="email" id="bootstrap-email" placeholder="admin@empresa.com">
+  <label>Contraseña</label>
+  <input type="password" id="bootstrap-password" placeholder="Mínimo 10 caracteres">
+  <label>Confirmar contraseña</label>
+  <input type="password" id="bootstrap-password-2" placeholder="Repite la contraseña">
+  <div id="bootstrap-error" style="color:#ff6b6b; font-size:0.8rem; margin-bottom:10px; display:none;"></div>
+  <button class="btn btn-primary btn-full" id="bootstrap-btn" onclick="crearAdministradorInicial()">Crear administrador principal</button>
+</div>
+
+<main id="main" style="display:none;">
+  <div style="display:flex; gap:8px; margin-bottom:20px;">
+    <button class="btn btn-primary" id="tab-pedidos" style="flex:1;" onclick="cambiarVistaPanel('pedidos')">Pedidos</button>
+    <button class="btn btn-ghost" id="tab-informes" style="flex:1;" onclick="cambiarVistaPanel('informes')">📊 Informes</button>
+    <button class="btn btn-ghost" id="tab-usuarios" style="flex:1; position:relative;" onclick="cambiarVistaPanel('usuarios')">
+      👥 Usuarios
+      <span id="badge-chats-sin-leer" style="display:none; position:absolute; top:-6px; right:-6px; background:#ff3b3b; color:#fff; border-radius:50%; min-width:18px; height:18px; font-size:0.68rem; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace;"></span>
+    </button>
+    <button class="btn btn-ghost" id="tab-ajustes" style="flex:1;" onclick="cambiarVistaPanel('ajustes')">⚙️ Configuración</button>
+  </div>
+
+  <div id="vista-pedidos">
+  <div class="pedidos-grid">
+  <section>
+    <h2>Pedidos <span class="count" id="pedidos-count"></span></h2>
+
+    <div class="new-order">
+      <div class="grid">
+        <div class="field"><label>Cliente</label><input type="text" id="in-cliente" placeholder="Nombre del cliente"></div>
+        <div class="field"><label>Teléfono (opcional)</label><input type="text" id="in-telefono" placeholder="300 000 0000"></div>
+        <div class="field full"><label>Dirección</label><input type="text" id="in-direccion" placeholder="Barrio, calle, referencia"></div>
+        <div class="field full"><label>Pedido</label><textarea id="in-pedido" placeholder="Ej: 1 bandeja paisa, 1 jugo de mora sin azúcar"></textarea></div>
+        <div class="field"><label>Pago</label>
+          <select id="in-pago"><option>Efectivo</option><option>Nequi</option><option>Daviplata</option><option>Ya pagó</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="crearPedido()">Enviar pedido a domiciliarios</button>
+    </div>
+
+    <div id="lista-pedidos"></div>
+
+    <button class="history-toggle" id="history-toggle" onclick="toggleHistorial()">Ver historial de entregados de hoy</button>
+    <div id="lista-historial" style="display:none; margin-top:10px;"></div>
+  </section>
+
+  <section>
+    <h2>Domiciliarios autorizados <span class="count" id="repartidores-count"></span></h2>
+    <div class="empty" style="margin-bottom:14px; text-align:left; padding:12px 14px;">
+      Esta lista es la que ven en la app de GoHouse para identificarse. Agrega aquí a quien vaya a repartir.
+    </div>
+    <div id="lista-repartidores"></div>
+    <div class="add-repartidor">
+      <input type="text" id="in-repartidor" placeholder="Nombre del domiciliario">
+      <input type="text" id="in-repartidor-pin" placeholder="PIN (4 dígitos)" maxlength="4" style="max-width:110px; text-align:center; font-family:'JetBrains Mono', monospace;">
+      <button class="btn btn-ghost btn-sm" title="Generar PIN aleatorio" onclick="generarPinNuevo()">🎲</button>
+      <button class="btn btn-ghost btn-sm" onclick="agregarRepartidor()">Agregar</button>
+    </div>
+  </section>
+  </div>
+  </div>
+
+  <div id="vista-informes" style="display:none;"></div>
+  <div id="vista-usuarios" style="display:none;"></div>
+  <div id="vista-ajustes" style="display:none;"></div>
+</main>
+
+<div class="loading-note" id="loading-note">Cargando panel…</div>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL DE LIQUIDACIÓN -->
+<div id="modal-liquidacion" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h2 style="margin-top:0;">Liquidar domiciliario</h2>
+    <div id="liquidacion-resumen"></div>
+
+    <div class="group-label" style="margin-top:14px;">Ancho de la impresora POS</div>
+    <div style="display:flex; gap:6px; margin-bottom:14px;">
+      <button class="btn btn-ghost" id="btn-ancho-58" style="flex:1;" onclick="cambiarAnchoPOS('58')">58mm</button>
+      <button class="btn btn-ghost" id="btn-ancho-80" style="flex:1;" onclick="cambiarAnchoPOS('80')">80mm</button>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="imprimirLiquidacion()">🖨️ Imprimir recibo</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="confirmarLiquidacionPagada()">✅ Marcar como liquidado</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="cerrarModalLiquidacion()">Cancelar</button>
+  </div>
+</div>
+
+<!-- RECIBO POS (solo visible al imprimir) -->
+<div id="pos-print-area" class="pos-ticket"></div>
+
+<div id="chat-panel-modal" class="chat-panel-modal" style="display:none;">
+  <div class="chat-header">
+    <span id="chat-panel-titulo">Chat</span>
+    <button class="chat-close" onclick="cerrarChatConDomiciliario()">✕</button>
+  </div>
+  <div id="chat-panel-mensajes" class="chat-mensajes"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-panel-input" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensajeChatPanel()">
+    <button onclick="enviarMensajeChatPanel()">➤</button>
+  </div>
+</div>
+
+<div id="chat-foto-viewer" onclick="cerrarVisorFotoPanel()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:70; align-items:center; justify-content:center; padding:20px;">
+  <img id="chat-foto-viewer-img" style="max-width:100%; max-height:100%; border-radius:8px;">
+</div>
+
+<script src="gohouse-vps-adapter.js"></script>
+<script>
+const appConfig = { appKind: 'panel' };
+const gohouseApp = gohouseCloud.initializeApp(appConfig, 'panel');
+const dbRef = gohouseApp.database().ref('gohouse-data');
+const auth = gohouseApp.auth();
+
+let data = { orders: [], repartidores: [] };
+
+function todayStr(){ return new Date().toDateString(); }
+
+function normalizarData(val){
+  const d = val || {};
+  if(!Array.isArray(d.orders)) d.orders = [];
+  if(!Array.isArray(d.repartidores)) d.repartidores = [];
+  if(!d.config || typeof d.config !== 'object'){
+    d.config = { porcentajeCasa: 17.14, valorSugerido: 3500 };
+  } else {
+    if(typeof d.config.porcentajeCasa !== 'number') d.config.porcentajeCasa = 17.14;
+    if(typeof d.config.valorSugerido !== 'number') d.config.valorSugerido = 3500;
+  }
+  return d;
+}
+
+function iniciarEscuchaEnVivo(){
+  dbRef.on('value', snapshot => {
+    const huboValorOriginal = !!snapshot.val();
+    data = normalizarData(snapshot.val());
+    if(!huboValorOriginal){
+      dbRef.set(data);
+    }
+    document.getElementById('loading-note').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    render();
+  }, error => {
+    console.error('Error de conexión con el servidor:', error);
+    document.getElementById('loading-note').textContent = 'No se pudo conectar. Revisa tu internet.';
+  });
+}
+
+function conTiempoLimite(promesa, ms, mensajeTimeout){
+  return Promise.race([
+    promesa,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(mensajeTimeout)), ms))
+  ]);
+}
+
+async function saveData(){
+  try{ await conTiempoLimite(dbRef.set(data), 10000, 'Tiempo de espera agotado guardando.'); }
+  catch(e){ showToast('No se pudo guardar: ' + e.message); console.error(e); }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+function uid(){ return Math.random().toString(36).slice(2, 8); }
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('es-CO', { hour: '2-digit', minute:'2-digit' }); }
+
+async function crearPedido(){
+  const cliente = document.getElementById('in-cliente').value.trim();
+  const telefono = document.getElementById('in-telefono').value.trim();
+  const direccion = document.getElementById('in-direccion').value.trim();
+  const pedido = document.getElementById('in-pedido').value.trim();
+  const pago = document.getElementById('in-pago').value;
+
+  if(!cliente || !direccion || !pedido){ showToast('Completa cliente, dirección y pedido.'); return; }
+
+  const orden = {
+    id: uid(), numero: (data.orders.length + 1),
+    cliente, telefono, direccion, pedido, pago,
+    estado: 'nuevo', repartidorId: null,
+    createdAt: Date.now(), deliveredAt: null, day: todayStr()
+  };
+  data.orders.unshift(orden);
+  await saveData();
+
+  document.getElementById('in-cliente').value = '';
+  document.getElementById('in-telefono').value = '';
+  document.getElementById('in-direccion').value = '';
+  document.getElementById('in-pedido').value = '';
+
+  showToast('Pedido #' + orden.numero + ' enviado a los domiciliarios disponibles.');
+  render();
+}
+
+async function liberarPedido(orderId){
+  const orden = data.orders.find(o => o.id === orderId);
+  if(!orden) return;
+  if(orden.repartidorId){
+    const rep = data.repartidores.find(r => r.id === orden.repartidorId);
+    if(rep) rep.estado = 'disponible';
+  }
+  orden.repartidorId = null;
+  orden.estado = 'nuevo';
+  await saveData();
+  showToast('Pedido liberado, vuelve a estar disponible.');
+  render();
+}
+
+function generarPinAleatorio(){
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function generarPinNuevo(){
+  document.getElementById('in-repartidor-pin').value = generarPinAleatorio();
+}
+
+async function agregarRepartidor(){
+  const input = document.getElementById('in-repartidor');
+  const pinInput = document.getElementById('in-repartidor-pin');
+  const nombre = input.value.trim();
+  let pin = pinInput.value.trim();
+  if(!nombre){ showToast('Escribe un nombre.'); return; }
+  if(!pin){ pin = generarPinAleatorio(); }
+  if(!/^\d{4}$/.test(pin)){ showToast('El PIN debe tener exactamente 4 números.'); return; }
+  try{
+    await GoHouseVPS.api('/drivers', { method:'POST', body:JSON.stringify({ nombre, pin }) });
+    input.value = '';
+    pinInput.value = '';
+    alert(`${nombre} fue agregado.\n\nSu PIN de acceso es: ${pin}\n\nEntrégaselo para que pueda entrar a la app de domiciliarios.`);
+  }catch(e){ showToast('No se pudo agregar: ' + e.message); }
+}
+
+async function cambiarPinRepartidor(repId){
+  const rep = data.repartidores.find(r => r.id === repId);
+  if(!rep) return;
+  if(!confirm(`¿Generar un PIN nuevo para ${rep.nombre}? El PIN anterior dejará de funcionar.`)) return;
+  const nuevoPin = generarPinAleatorio();
+  try{
+    await GoHouseVPS.api(`/drivers/${encodeURIComponent(repId)}/pin`, { method:'PUT', body:JSON.stringify({ pin:nuevoPin }) });
+    alert(`Nuevo PIN de ${rep.nombre}: ${nuevoPin}\n\nEntrégaselo para que pueda seguir entrando.`);
+  }catch(e){ showToast('No se pudo cambiar el PIN: ' + e.message); }
+}
+
+async function eliminarRepartidor(repId){
+  const enUso = data.orders.some(o => o.repartidorId === repId && o.estado !== 'entregado' && o.estado !== 'cancelado');
+  if(enUso){ showToast('Tiene un pedido activo, no se puede quitar todavía.'); return; }
+  if(!confirm('¿Quitar este domiciliario? Su PIN dejará de funcionar.')) return;
+  try{
+    await GoHouseVPS.api('/drivers/' + encodeURIComponent(repId), { method:'DELETE' });
+    showToast('Domiciliario eliminado.');
+  }catch(e){ showToast('No se pudo eliminar: ' + e.message); }
+}
+
+function toggleHistorial(){
+  const el = document.getElementById('lista-historial');
+  const btn = document.getElementById('history-toggle');
+  const showing = el.style.display !== 'none';
+  el.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? 'Ver historial de entregados de hoy' : 'Ocultar historial';
+}
+
+function toggleDetalleHistorial(orderId){
+  const el = document.getElementById('detalle-hist-' + orderId);
+  if(!el) return;
+  el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+}
+
+function estadoLabel(estado){
+  return { nuevo: 'Buscando domiciliario', aceptado: 'Aceptado', en_destino: 'En el lugar', camino: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' }[estado] || estado;
+}
+
+function render(){
+  const hoy = todayStr();
+  const activos = data.orders.filter(o => o.day === hoy && o.estado !== 'entregado' && o.estado !== 'cancelado');
+  const entregadosHoy = data.orders.filter(o => o.day === hoy && o.estado === 'entregado');
+
+  document.getElementById('pedidos-count').textContent = '(' + activos.length + ' activos)';
+  document.getElementById('stat-nuevos').textContent = data.orders.filter(o => o.day===hoy && o.estado==='nuevo').length;
+  document.getElementById('stat-curso').textContent = data.orders.filter(o => o.day===hoy && (o.estado==='aceptado'||o.estado==='en_destino'||o.estado==='camino')).length;
+  document.getElementById('stat-entregados').textContent = entregadosHoy.length;
+  document.getElementById('stat-disponibles').textContent = data.repartidores.filter(r => r.estado==='disponible').length;
+  document.getElementById('repartidores-count').textContent = '(' + data.repartidores.length + ')';
+
+  const listaEl = document.getElementById('lista-pedidos');
+  if(activos.length === 0){
+    listaEl.innerHTML = '<div class="empty">No hay pedidos activos. Registra uno arriba.</div>';
+  } else {
+    listaEl.innerHTML = activos.map(o => {
+      const rep = data.repartidores.find(r => r.id === o.repartidorId);
+      const badgeEstadoClase = { nuevo:'badge-estado-nuevo', aceptado:'badge-estado-aceptado', en_destino:'badge-estado-aceptado', camino:'badge-estado-camino', cancelado:'badge-estado-cancelado' }[o.estado] || '';
+
+      const chatClienteHtml = o.telefono
+        ? `<button class="btn btn-ghost btn-sm" onclick="abrirChatConCliente('${o.telefono}', '${escapeHtml(o.cliente).replace(/'/g, "\\'")}')">💬 Escribirle al cliente</button>`
+        : '';
+
+      let accionesHtml = '';
+      if(o.estado === 'nuevo'){
+        accionesHtml = `
+          <span class="waiting-note">Esperando que un domiciliario lo acepte en GoHouse…</span>
+          ${chatClienteHtml}`;
+      } else {
+        accionesHtml = `
+          <span class="repartidor-tag">${rep ? rep.nombre : '—'}</span>
+          <button class="btn btn-danger-ghost btn-sm" onclick="liberarPedido('${o.id}')">Liberar pedido</button>
+          ${chatClienteHtml}`;
+      }
+
+      const minutosEspera = Math.floor((Date.now() - o.createdAt) / 60000);
+      const demorado = o.estado === 'nuevo' && minutosEspera >= 5;
+
+      return `
+        <div class="ticket ${demorado ? 'ticket-demorado' : ''}" data-created="${o.createdAt}" data-estado="${o.estado}">
+          <div class="ticket-top">
+            <span class="ticket-id">PEDIDO #${o.numero}</span>
+            <span class="ticket-time">${fmtTime(o.createdAt)} · <span class="tiempo-espera">${minutosEspera} min</span></span>
+          </div>
+          <div class="cliente">${escapeHtml(o.cliente)}</div>
+          <div class="direccion">${escapeHtml(o.direccion)}${o.telefono ? ' · ' + escapeHtml(o.telefono) : ''}</div>
+          <div class="badge-row">
+            <span class="badge badge-pago">${o.pago || 'Pago pendiente'}</span>
+            <span class="badge ${badgeEstadoClase}">${estadoLabel(o.estado)}</span>
+          </div>
+          <div class="pedido-text">${escapeHtml(o.pedido)}</div>
+          <div class="ticket-actions">${accionesHtml}</div>
+        </div>`;
+    }).join('');
+  }
+
+  const histEl = document.getElementById('lista-historial');
+  const canceladosHoy = data.orders.filter(o => o.day === hoy && o.estado === 'cancelado');
+  const historialHoy = entregadosHoy.concat(canceladosHoy).sort((a,b) => (a.deliveredAt || a.canceladoAt || 0) - (b.deliveredAt || b.canceladoAt || 0));
+
+  if(historialHoy.length === 0){
+    histEl.innerHTML = '<div class="empty">Aún no hay entregas ni cancelaciones hoy.</div>';
+  } else {
+    histEl.innerHTML = historialHoy.slice().reverse().map(o => {
+      const rep = data.repartidores.find(r => r.id === o.repartidorId);
+      const esCancelado = o.estado === 'cancelado';
+      const ganancia = (o.tarifa || 0) - (o.comisionCasa || 0);
+      const hora = esCancelado ? o.canceladoAt : o.deliveredAt;
+      return `
+        <div class="history-item-detailed" onclick="toggleDetalleHistorial('${o.id}')">
+          <div class="history-top-row">
+            <span>#${o.numero} · ${escapeHtml(o.cliente)} · ${rep ? rep.nombre : '—'} ${esCancelado ? '<span style="color:#ff6b6b; font-weight:600;">· CANCELADO</span>' : ''}<span class="ver-mas">ver detalle</span></span>
+            <span>${fmtTime(hora)}</span>
+          </div>
+          <div id="detalle-hist-${o.id}" class="history-detalle" style="display:none;">
+            <div class="summary-line"><span>Pedido</span><span>${escapeHtml(o.pedido)}</span></div>
+            <div class="summary-line"><span>Dirección</span><span>${escapeHtml(o.direccion)}</span></div>
+            ${o.telefono ? `<div class="summary-line"><span>Teléfono</span><span>${escapeHtml(o.telefono)}</span></div>` : ''}
+            ${esCancelado
+              ? `<div class="summary-line"><span>Cancelado estando en</span><span>${estadoLabel(o.canceladoEnEstado || '—')}</span></div>`
+              : `
+                <div class="summary-line"><span>Pago</span><span>${escapeHtml(o.pago || '—')}</span></div>
+                <div class="summary-line"><span>Valor del servicio</span><span>$${(o.tarifa || 0).toLocaleString('es-CO')}</span></div>
+                <div class="summary-line"><span>Para GoHouse</span><span>$${(o.comisionCasa || 0).toLocaleString('es-CO')}</span></div>
+                <div class="summary-line"><span>Para el domiciliario</span><span>$${ganancia.toLocaleString('es-CO')}</span></div>
+                ${o.comprobante ? `<div style="margin-top:10px;"><div class="hint" style="margin:0 0 6px;">Comprobante de pago:</div><img src="${o.comprobante}" onclick="event.stopPropagation(); verFotoCompletaPanel('${o.comprobante.replace(/'/g, "\\'")}')" style="max-width:160px; border-radius:8px; cursor:pointer;"></div>` : ''}
+              `}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const repEl = document.getElementById('lista-repartidores');
+  if(data.repartidores.length === 0){
+    repEl.innerHTML = '<div class="empty">Agrega tu primer domiciliario abajo.</div>';
+  } else {
+    repEl.innerHTML = data.repartidores.map(r => {
+      const ordenActiva = data.orders.find(o => o.repartidorId === r.id && o.estado !== 'entregado' && o.estado !== 'cancelado');
+      let detalleActivo = '';
+      if(ordenActiva){
+        detalleActivo = `
+          <div class="repartidor-detalle-activo">
+            <div class="summary-line"><span>Pedido #${ordenActiva.numero}</span><span style="color:var(--mango);">${estadoLabel(ordenActiva.estado)}</span></div>
+            ${ordenActiva.aceptadoAt ? `<div class="summary-line"><span>Lo tomó</span><span>${fmtTime(ordenActiva.aceptadoAt)}</span></div>` : ''}
+            ${ordenActiva.enDestinoAt ? `<div class="summary-line"><span>Llegó al lugar</span><span>${fmtTime(ordenActiva.enDestinoAt)}</span></div>` : ''}
+            ${ordenActiva.caminoAt ? `<div class="summary-line"><span>Salió hacia el cliente</span><span>${fmtTime(ordenActiva.caminoAt)}</span></div>` : ''}
+          </div>
+        `;
+      }
+      return `
+      <div class="repartidor-card" style="flex-direction:column; align-items:stretch;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="repartidor-info">
+            <span class="dot dot-${r.estado}"></span>
+            <div><div class="repartidor-name">${escapeHtml(r.nombre)}</div><div class="repartidor-estado">${r.estado.replace('_',' ')} · PIN protegido</div></div>
+          </div>
+          <div class="repartidor-controls">
+            <button class="icon-btn" title="Chat con este domiciliario" onclick="abrirChatConDomiciliario('${r.id}', '${escapeHtml(r.nombre).replace(/'/g, "\\'")}')">💬</button>
+            <button class="icon-btn" title="Generar PIN nuevo" onclick="cambiarPinRepartidor('${r.id}')">🎲</button>
+            <button class="icon-btn" title="Quitar" onclick="eliminarRepartidor('${r.id}')">✕</button>
+          </div>
+        </div>
+        ${detalleActivo}
+      </div>
+    `;
+    }).join('');
+  }
+
+  if(vistaPanel === 'informes') renderInformes();
+  if(vistaPanel === 'ajustes') renderAjustes();
+  if(vistaPanel === 'usuarios') renderUsuarios();
+}
+
+let vistaPanel = 'pedidos';
+let filtroInformes = 'hoy';
+
+function cambiarVistaPanel(v){
+  vistaPanel = v;
+  document.getElementById('vista-pedidos').style.display = (v === 'pedidos') ? 'block' : 'none';
+  document.getElementById('vista-informes').style.display = (v === 'informes') ? 'block' : 'none';
+  document.getElementById('vista-ajustes').style.display = (v === 'ajustes') ? 'block' : 'none';
+  document.getElementById('vista-usuarios').style.display = (v === 'usuarios') ? 'block' : 'none';
+  document.getElementById('tab-pedidos').className = 'btn ' + (v === 'pedidos' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('tab-informes').className = 'btn ' + (v === 'informes' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('tab-ajustes').className = 'btn ' + (v === 'ajustes' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('tab-usuarios').className = 'btn ' + (v === 'usuarios' ? 'btn-primary' : 'btn-ghost');
+  render();
+}
+
+function renderUsuarios(){
+  const cont = document.getElementById('vista-usuarios');
+  const clientes = data.clientes || {};
+  const lista = Object.values(clientes).sort((a, b) => (b.registradoEn || 0) - (a.registradoEn || 0));
+
+  cont.innerHTML = `
+    <h2>Clientes registrados <span class="count">(${lista.length})</span></h2>
+    <input type="text" id="buscar-cliente" placeholder="Buscar por nombre, cédula o celular..." style="margin-bottom:14px;" oninput="filtrarUsuarios()">
+    <div id="lista-clientes"></div>
+  `;
+
+  window.clientesParaBuscar = lista;
+  pintarListaClientes(lista);
+}
+
+function pintarListaClientes(lista){
+  const el = document.getElementById('lista-clientes');
+  if(lista.length === 0){
+    el.innerHTML = '<div class="empty">No hay clientes que coincidan.</div>';
+    return;
+  }
+  el.innerHTML = lista.map(c => `
+    <div class="repartidor-card">
+      <div class="repartidor-info">
+        <div class="repartidor-name">${escapeHtml(c.nombre || '(sin nombre)')}</div>
+        <div class="repartidor-estado">${escapeHtml(c.cedula || '—')} · ${escapeHtml(c.celular || '—')}</div>
+        <div class="repartidor-estado">${escapeHtml(c.direccion || '')}${c.ciudad ? ', ' + escapeHtml(c.ciudad) : ''}</div>
+      </div>
+      <div style="text-align:right;">
+        <button class="icon-btn" title="Chat con este cliente" onclick="abrirChatConCliente('${c.celular}', '${escapeHtml(c.nombre || 'Cliente').replace(/'/g, "\\'")}')">💬</button>
+        <div style="font-size:0.7rem; color:var(--text-dim); font-family:'JetBrains Mono', monospace; margin-top:4px;">
+          ${c.registradoEn ? new Date(c.registradoEn).toLocaleDateString('es-CO', {day:'numeric', month:'short', year:'numeric'}) : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filtrarUsuarios(){
+  const q = document.getElementById('buscar-cliente').value.trim().toLowerCase();
+  const lista = (window.clientesParaBuscar || []).filter(c =>
+    (c.nombre || '').toLowerCase().includes(q) ||
+    (c.cedula || '').toLowerCase().includes(q) ||
+    (c.celular || '').toLowerCase().includes(q)
+  );
+  pintarListaClientes(lista);
+}
+
+function configMarcaActual(){
+  return {
+    brandName: 'Go House', shortName: 'GoHouse', legalName: '', nit: '', phone: '', whatsapp: '', email: '', address: '', city: 'Yarumal', hours: '', supportText: '',
+    primaryColor: '#E8863A', accentColor: '#34C6C0', successColor: '#5FBF8B', logoUrl: '', appIconUrl: '', paymentQrUrl: '', nequiNumber: '', daviplataNumber: '', bankName: '', bankAccount: '',
+    ...(data.config || {})
+  };
+}
+
+function fileAsDataUrl(file){
+  return new Promise((resolve,reject) => {
+    if(!file) return resolve(null);
+    if(!/^image\/(png|jpeg|webp|svg\+xml)$/i.test(file.type || '')) return reject(new Error('Usa una imagen PNG, JPG, WEBP o SVG.'));
+    if(file.size > 5 * 1024 * 1024) return reject(new Error('La imagen supera 5 MB.'));
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadBrandFile(inputId, currentUrl){
+  const file = document.getElementById(inputId)?.files?.[0];
+  if(!file) return currentUrl || '';
+  const dataUrl = await fileAsDataUrl(file);
+  // El endpoint actual admite PNG/JPG/WEBP. SVG se conserva para una fase posterior.
+  if(/^data:image\/svg\+xml/i.test(dataUrl)) throw new Error('Para publicar usa PNG, JPG o WEBP.');
+  const out = await GoHouseVPS.api('/upload-data-url', { method:'POST', body:JSON.stringify({ dataUrl }) });
+  return out.url;
+}
+
+function inputValue(id){ return (document.getElementById(id)?.value || '').trim(); }
+
+async function guardarConfiguracionMarcaBlanca(){
+  if(rolActual !== 'administrador'){ showToast('Solo un administrador puede cambiar la identidad.'); return; }
+  const btn = document.getElementById('btn-guardar-marca');
+  if(btn){ btn.disabled = true; btn.textContent = 'Guardando…'; }
+  try{
+    const actual = configMarcaActual();
+    const brandName = inputValue('brand-name');
+    const shortName = inputValue('brand-short-name');
+    if(!brandName){ showToast('Escribe el nombre comercial.'); return; }
+    if(!shortName){ showToast('Escribe el nombre corto de la app.'); return; }
+
+    const logoUrl = await uploadBrandFile('brand-logo-file', actual.logoUrl);
+    const appIconUrl = await uploadBrandFile('brand-icon-file', actual.appIconUrl);
+    const paymentQrUrl = await uploadBrandFile('brand-payment-qr-file', actual.paymentQrUrl);
+
+    data.config = {
+      ...(data.config || {}),
+      brandName,
+      shortName,
+      legalName: inputValue('brand-legal-name'),
+      nit: inputValue('brand-nit'),
+      phone: inputValue('brand-phone'),
+      whatsapp: inputValue('brand-whatsapp'),
+      email: inputValue('brand-email'),
+      address: inputValue('brand-address'),
+      city: inputValue('brand-city'),
+      hours: inputValue('brand-hours'),
+      supportText: inputValue('brand-support-text'),
+      primaryColor: document.getElementById('brand-primary-color')?.value || actual.primaryColor,
+      accentColor: document.getElementById('brand-accent-color')?.value || actual.accentColor,
+      successColor: document.getElementById('brand-success-color')?.value || actual.successColor,
+      logoUrl,
+      appIconUrl,
+      paymentQrUrl,
+      nequiNumber: inputValue('brand-nequi'),
+      daviplataNumber: inputValue('brand-daviplata'),
+      bankName: inputValue('brand-bank-name'),
+      bankAccount: inputValue('brand-bank-account')
+    };
+    await saveData();
+    if(window.GoHouseBrand?.reload) await window.GoHouseBrand.reload();
+    showToast('Identidad y datos publicados.');
+    renderAjustes();
+  }catch(e){
+    console.error(e);
+    showToast('No se pudo guardar: ' + e.message);
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = 'Guardar y publicar'; }
+  }
+}
+
+function previewBrandFile(inputId, imgId){
+  const file = document.getElementById(inputId)?.files?.[0];
+  const img = document.getElementById(imgId);
+  if(!file || !img) return;
+  const url = URL.createObjectURL(file);
+  img.src = url;
+  img.onload = () => URL.revokeObjectURL(url);
+}
+
+
+async function guardarAjustesValorDomicilio(){
+  const porcentajeCasa = parseFloat(document.getElementById('in-porcentaje-casa').value);
+  const valorSugerido = parseFloat(document.getElementById('in-valor-sugerido').value);
+
+  if(isNaN(porcentajeCasa) || porcentajeCasa <= 0 || porcentajeCasa >= 100){ showToast('Escribe un porcentaje válido (entre 1 y 99).'); return; }
+  if(isNaN(valorSugerido) || valorSugerido <= 0){ showToast('Escribe un valor sugerido válido.'); return; }
+
+  data.config = { ...(data.config || {}), porcentajeCasa, valorSugerido };
+  await saveData();
+  showToast('Ajustes guardados.');
+}
+
+function renderAjustes(){
+  const cont = document.getElementById('vista-ajustes');
+  const cfg = configMarcaActual();
+  const usuarios = data.usuariosPanel || {};
+
+  cont.innerHTML = `
+    <section>
+      <h2>🎨 Marca blanca — Identidad</h2>
+      <div class="empty" style="text-align:left; padding:12px 14px; margin-bottom:14px;">
+        Estos datos controlan la identidad visible en Cliente, Panel, Domiciliarios, notificaciones y la PWA instalada. No hace falta modificar código para cambiar de marca.
+      </div>
+      <div class="new-order">
+        <div class="grid">
+          <div class="field"><label>Nombre comercial</label><input id="brand-name" value="${escapeHtml(cfg.brandName || 'Go House')}" placeholder="Nombre de la empresa"></div>
+          <div class="field"><label>Nombre corto de la app</label><input id="brand-short-name" maxlength="24" value="${escapeHtml(cfg.shortName || 'GoHouse')}" placeholder="Nombre corto"></div>
+          <div class="field full"><label>Logo principal</label><input type="file" id="brand-logo-file" accept="image/png,image/jpeg,image/webp" onchange="previewBrandFile('brand-logo-file','brand-logo-preview')"></div>
+          <div class="field full">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:12px;">
+              <img id="brand-logo-preview" src="${escapeHtml(cfg.logoUrl || 'brand-placeholder.svg')}" alt="Vista previa del logo" style="width:68px;height:68px;object-fit:contain;border-radius:12px;background:#fff;">
+              <div><b id="brand-preview-name">${escapeHtml(cfg.brandName || 'Go House')}</b><div style="font-size:.78rem;color:var(--text-dim);">Vista previa de identidad</div></div>
+            </div>
+          </div>
+          <div class="field full"><label>Icono de la app / PWA</label><input type="file" id="brand-icon-file" accept="image/png,image/jpeg,image/webp" onchange="previewBrandFile('brand-icon-file','brand-icon-preview')"></div>
+          <div class="field full"><img id="brand-icon-preview" src="${escapeHtml(cfg.appIconUrl || cfg.logoUrl || 'brand-placeholder.svg')}" alt="Vista previa del icono" style="width:72px;height:72px;object-fit:cover;border-radius:16px;border:1px solid var(--line);"></div>
+          <div class="field"><label>Color principal</label><input type="color" id="brand-primary-color" value="${escapeHtml(cfg.primaryColor || '#E8863A')}"></div>
+          <div class="field"><label>Color secundario</label><input type="color" id="brand-accent-color" value="${escapeHtml(cfg.accentColor || '#34C6C0')}"></div>
+          <div class="field"><label>Color de éxito</label><input type="color" id="brand-success-color" value="${escapeHtml(cfg.successColor || '#5FBF8B')}"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>🏢 Datos de la empresa</h2>
+      <div class="new-order">
+        <div class="grid">
+          <div class="field full"><label>Razón social / propietario</label><input id="brand-legal-name" value="${escapeHtml(cfg.legalName || '')}" placeholder="Razón social o nombre del titular"></div>
+          <div class="field"><label>NIT / documento</label><input id="brand-nit" value="${escapeHtml(cfg.nit || '')}" placeholder="NIT o documento"></div>
+          <div class="field"><label>Municipio / ciudad</label><input id="brand-city" value="${escapeHtml(cfg.city || '')}" placeholder="Municipio"></div>
+          <div class="field"><label>Teléfono</label><input id="brand-phone" value="${escapeHtml(cfg.phone || '')}" placeholder="Teléfono"></div>
+          <div class="field"><label>WhatsApp</label><input id="brand-whatsapp" value="${escapeHtml(cfg.whatsapp || '')}" placeholder="WhatsApp"></div>
+          <div class="field full"><label>Correo</label><input type="email" id="brand-email" value="${escapeHtml(cfg.email || '')}" placeholder="correo@empresa.com"></div>
+          <div class="field full"><label>Dirección</label><input id="brand-address" value="${escapeHtml(cfg.address || '')}" placeholder="Dirección comercial"></div>
+          <div class="field full"><label>Horario</label><input id="brand-hours" value="${escapeHtml(cfg.hours || '')}" placeholder="Ej. Lun–Dom 8:00 a. m. – 9:00 p. m."></div>
+          <div class="field full"><label>Texto de soporte / descripción</label><textarea id="brand-support-text" placeholder="Texto corto que describe el servicio">${escapeHtml(cfg.supportText || '')}</textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>💳 Pagos</h2>
+      <div class="new-order">
+        <div class="grid">
+          <div class="field"><label>Nequi</label><input id="brand-nequi" value="${escapeHtml(cfg.nequiNumber || '')}" placeholder="Número Nequi"></div>
+          <div class="field"><label>Daviplata</label><input id="brand-daviplata" value="${escapeHtml(cfg.daviplataNumber || '')}" placeholder="Número Daviplata"></div>
+          <div class="field"><label>Banco</label><input id="brand-bank-name" value="${escapeHtml(cfg.bankName || '')}" placeholder="Nombre del banco"></div>
+          <div class="field"><label>Cuenta</label><input id="brand-bank-account" value="${escapeHtml(cfg.bankAccount || '')}" placeholder="Número / tipo de cuenta"></div>
+          <div class="field full"><label>QR de pagos</label><input type="file" id="brand-payment-qr-file" accept="image/png,image/jpeg,image/webp" onchange="previewBrandFile('brand-payment-qr-file','brand-payment-qr-preview')"></div>
+          <div class="field full"><img id="brand-payment-qr-preview" src="${escapeHtml(cfg.paymentQrUrl || 'brand-placeholder.svg')}" alt="Vista previa QR" style="width:120px;height:120px;object-fit:contain;border-radius:12px;background:#fff;border:1px solid var(--line);"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <button class="btn btn-primary btn-full" id="btn-guardar-marca" onclick="guardarConfiguracionMarcaBlanca()">Guardar y publicar</button>
+      <div class="empty" style="text-align:left; padding:12px 14px; margin-top:10px;">Los cambios se aplican a las tres aplicaciones sin reiniciar el servidor ni volver a desplegar código.</div>
+    </section>
+
+    <section>
+      <h2>Comisión del servicio</h2>
+      <div class="new-order">
+        <div class="grid">
+          <div class="field">
+            <label>Porcentaje que se queda la empresa (%)</label>
+            <input type="number" step="0.01" id="in-porcentaje-casa" value="${cfg.porcentajeCasa}">
+          </div>
+          <div class="field">
+            <label>Valor sugerido de domicilio (referencia)</label>
+            <input type="number" id="in-valor-sugerido" value="${cfg.valorSugerido}">
+          </div>
+        </div>
+        <div class="summary-line">
+          <span>Ejemplo: un domicilio de $<span id="preview-valor-ejemplo">${cfg.valorSugerido.toLocaleString('es-CO')}</span></span>
+          <span></span>
+        </div>
+        <div class="summary-line">
+          <span>→ Para la empresa</span>
+          <span id="preview-comision-casa" style="color:var(--mango); font-weight:600;"></span>
+        </div>
+        <div class="summary-line">
+          <span>→ Para el domiciliario</span>
+          <span id="preview-ganancia-domiciliario" style="color:var(--green); font-weight:600;"></span>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="guardarAjustesValorDomicilio()">Guardar ajustes</button>
+      </div>
+      <div class="empty" style="text-align:left; padding:12px 14px;">
+        El porcentaje se aplica sobre el valor real de cada domicilio — no todos cuestan lo mismo, así que al marcar "Entregado" el domiciliario escribe cuánto cobró por ese servicio en particular, y el sistema calcula la parte de cada quien según este porcentaje. El "valor sugerido" es solo una referencia que le aparece precargada al domiciliario, la puede cambiar si el domicilio valió distinto.
+      </div>
+    </section>
+
+    <section>
+      <h2>🔒 Seguridad — Accesos al panel</h2>
+      <div class="empty" style="text-align:left; padding:12px 14px; margin-bottom:14px;">
+        Solo las personas autorizadas pueden entrar al panel. Las contraseñas se guardan con hash y la autenticación ocurre directamente en el servidor de la plataforma.
+      </div>
+      <div id="lista-usuarios-panel"></div>
+      <div class="new-order" style="margin-top:14px;">
+        <div class="grid">
+          <div class="field full"><label>Correo del usuario</label><input type="email" id="in-usuario-email" placeholder="correo@ejemplo.com"></div>
+          <div class="field full"><label>Contraseña inicial</label><input type="password" id="in-usuario-password" placeholder="Mínimo 10 caracteres"></div>
+          <div class="field">
+            <label>Rol</label>
+            <select id="in-usuario-rol">
+              <option value="administrador">Administrador</option>
+              <option value="operador" selected>Operador</option>
+              <option value="lectura">Solo lectura</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="agregarUsuarioPanel()">Agregar acceso</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>⚠️ Zona de peligro</h2>
+      <div class="empty" style="text-align:left; padding:12px 14px; margin-bottom:14px; border-color:#ff6b6b;">
+        Esto borra <b>todos los pedidos, el historial y las conversaciones de chat</b> — útil para limpiar datos de prueba antes de arrancar en serio. <b>No borra</b> tus domiciliarios, sus PINs, ni la configuración de comisión.
+      </div>
+      <button class="btn btn-ghost btn-full" style="border-color:#ff6b6b; color:#ff6b6b;" onclick="limpiarHistorialPrueba()">🗑️ Borrar historial y chats de prueba</button>
+    </section>
+  `;
+
+  document.getElementById('in-porcentaje-casa').addEventListener('input', actualizarPreviewGanancia);
+  document.getElementById('in-valor-sugerido').addEventListener('input', actualizarPreviewGanancia);
+  actualizarPreviewGanancia();
+
+  const listaUsuarios = document.getElementById('lista-usuarios-panel');
+  const claves = Object.keys(usuarios);
+  if(claves.length === 0){
+    listaUsuarios.innerHTML = '<div class="empty">Todavía no hay usuarios agregados.</div>';
+  } else {
+    listaUsuarios.innerHTML = claves.map(key => {
+      const u = usuarios[key];
+      const nombreRol = { administrador: 'Administrador', operador: 'Operador', lectura: 'Solo lectura' }[u.rol] || u.rol;
+      return `
+        <div class="repartidor-card">
+          <div class="repartidor-info"><div class="repartidor-name">${escapeHtml(u.email)}</div><div class="repartidor-estado">${nombreRol}</div></div>
+          <div class="repartidor-controls"><button class="icon-btn" title="Quitar acceso" onclick="quitarUsuarioPanel('${key}')">✕</button></div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+async function agregarUsuarioPanel(){
+  const email = document.getElementById('in-usuario-email').value.trim();
+  const password = document.getElementById('in-usuario-password').value;
+  const rol = document.getElementById('in-usuario-rol').value;
+  if(!email){ showToast('Escribe el correo del usuario.'); return; }
+  if(password.length < 10){ showToast('La contraseña debe tener mínimo 10 caracteres.'); return; }
+  try{
+    await GoHouseVPS.api('/panel-users', { method:'POST', body:JSON.stringify({ email, password, rol }) });
+    document.getElementById('in-usuario-email').value = '';
+    document.getElementById('in-usuario-password').value = '';
+    showToast('Acceso creado.');
+  }catch(e){ showToast('No se pudo crear el acceso: ' + e.message); }
+}
+
+async function limpiarHistorialPrueba(){
+  const totalPedidos = data.orders.length;
+  if(!confirm(`Esto va a borrar ${totalPedidos} pedido(s), todos los clientes registrados y todas las conversaciones de chat.\n\nTus domiciliarios, sus PINs y la configuración de comisión NO se tocan.\n\n¿Confirmas que quieres borrar todo esto?`)){
+    return;
+  }
+  if(!confirm('Esta acción no se puede deshacer. ¿Seguro que quieres continuar?')){
+    return;
+  }
+
+  data.orders = [];
+  data.clientes = {};
+  await saveData();
+
+  try{
+    await Promise.all([dbRef.parent.child('chats').remove(), dbRef.parent.child('chatsClientes').remove(), dbRef.parent.child('chatsPanel').remove()]);
+  }catch(e){ console.error('No se pudieron borrar los chats:', e); }
+
+  showToast('Historial de prueba borrado. Listo para arrancar en serio.');
+  render();
+}
+
+async function quitarUsuarioPanel(key){
+  if(key === emailAKey(usuarioActual.email)){
+    showToast('No puedes quitarte el acceso a ti mismo desde aquí.');
+    return;
+  }
+  if(!confirm('¿Quitar el acceso de este usuario al panel?')) return;
+  const email = data.usuariosPanel?.[key]?.email;
+  if(!email) return;
+  try{
+    await GoHouseVPS.api('/panel-users?email=' + encodeURIComponent(email), { method:'DELETE' });
+    showToast('Acceso eliminado.');
+  }catch(e){ showToast('No se pudo quitar el acceso: ' + e.message); }
+}
+
+function actualizarPreviewGanancia(){
+  const porcentaje = parseFloat(document.getElementById('in-porcentaje-casa').value) || 0;
+  const valor = parseFloat(document.getElementById('in-valor-sugerido').value) || 0;
+  const comisionCasa = Math.round(valor * porcentaje / 100);
+  const ganancia = valor - comisionCasa;
+  document.getElementById('preview-valor-ejemplo').textContent = valor.toLocaleString('es-CO');
+  document.getElementById('preview-comision-casa').textContent = '$' + comisionCasa.toLocaleString('es-CO');
+  document.getElementById('preview-ganancia-domiciliario').textContent = '$' + ganancia.toLocaleString('es-CO');
+}
+
+function cambiarFiltroInformes(f){
+  filtroInformes = f;
+  render();
+}
+
+function pedidosEnPeriodo(){
+  const ahora = Date.now();
+  if(filtroInformes === 'hoy'){
+    const hoy = todayStr();
+    return data.orders.filter(o => o.day === hoy);
+  } else if(filtroInformes === 'semana'){
+    return data.orders.filter(o => (ahora - o.createdAt) <= 7 * 24 * 60 * 60 * 1000);
+  }
+  return data.orders;
+}
+
+function renderInformes(){
+  const cont = document.getElementById('vista-informes');
+  const pedidos = pedidosEnPeriodo();
+  const entregados = pedidos.filter(o => o.estado === 'entregado');
+  const enCurso = pedidos.filter(o => o.estado === 'nuevo' || o.estado === 'aceptado' || o.estado === 'en_destino' || o.estado === 'camino');
+
+  const totalRecaudadoDomicilios = entregados.reduce((sum, o) => sum + (o.tarifa || 0), 0);
+  const totalComisionCasa = entregados.reduce((sum, o) => sum + (o.comisionCasa != null ? o.comisionCasa : 0), 0);
+  const totalComisionDomiciliarios = totalRecaudadoDomicilios - totalComisionCasa;
+
+  const porDomiciliario = {};
+  entregados.forEach(o => {
+    const rep = data.repartidores.find(r => r.id === o.repartidorId);
+    const repId = rep ? rep.id : 'sin-asignar';
+    const nombre = rep ? rep.nombre : 'Sin asignar';
+    const tarifa = o.tarifa || 0;
+    const comisionCasaOrden = o.comisionCasa != null ? o.comisionCasa : 0;
+    if(!porDomiciliario[repId]) porDomiciliario[repId] = { nombre, count: 0, ganancia: 0, orders: [] };
+    porDomiciliario[repId].count++;
+    porDomiciliario[repId].ganancia += (tarifa - comisionCasaOrden);
+    porDomiciliario[repId].orders.push(o);
+  });
+
+  const porPago = {};
+  pedidos.forEach(o => {
+    const metodo = o.pago || 'Sin definir';
+    porPago[metodo] = (porPago[metodo] || 0) + 1;
+  });
+
+  let detalleDomiciliarioHtml = '';
+  if(domiciliarioSeleccionadoInforme && porDomiciliario[domiciliarioSeleccionadoInforme]){
+    const d = porDomiciliario[domiciliarioSeleccionadoInforme];
+    detalleDomiciliarioHtml = `
+      <div class="new-order" style="margin-top:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 style="margin:0;">Servicios de ${escapeHtml(d.nombre)}</h2>
+          <button class="btn btn-ghost btn-sm" onclick="domiciliarioSeleccionadoInforme=null; render();">Cerrar</button>
+        </div>
+        ${d.orders.slice().reverse().map(o => {
+          const ganancia = (o.tarifa || 0) - (o.comisionCasa || 0);
+          return `
+            <div class="history-item-detailed" onclick="toggleDetalleHistorial('inf-${o.id}')">
+              <div class="history-top-row">
+                <span>#${o.numero} · ${escapeHtml(o.cliente)}<span class="ver-mas">ver detalle</span></span>
+                <span>${new Date(o.deliveredAt).toLocaleDateString('es-CO', {day:'numeric', month:'short'})} ${fmtTime(o.deliveredAt)}</span>
+              </div>
+              <div id="detalle-hist-inf-${o.id}" class="history-detalle" style="display:none;">
+                <div class="summary-line"><span>Pedido</span><span>${escapeHtml(o.pedido)}</span></div>
+                <div class="summary-line"><span>Dirección</span><span>${escapeHtml(o.direccion)}</span></div>
+                <div class="summary-line"><span>Pago</span><span>${escapeHtml(o.pago || '—')}</span></div>
+                <div class="summary-line"><span>Valor del servicio</span><span>$${(o.tarifa || 0).toLocaleString('es-CO')}</span></div>
+                <div class="summary-line"><span>Para GoHouse</span><span>$${(o.comisionCasa || 0).toLocaleString('es-CO')}</span></div>
+                <div class="summary-line"><span>Para el domiciliario</span><span>$${ganancia.toLocaleString('es-CO')}</span></div>
+                ${o.comprobante ? `<div style="margin-top:10px;"><div class="hint" style="margin:0 0 6px;">Comprobante de pago:</div><img src="${o.comprobante}" onclick="event.stopPropagation(); verFotoCompletaPanel('${o.comprobante.replace(/'/g, "\\'")}')" style="max-width:160px; border-radius:8px; cursor:pointer;"></div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+        <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="prepararLiquidacion('${domiciliarioSeleccionadoInforme}')">🖨️ Liquidar a ${escapeHtml(d.nombre)}</button>
+      </div>
+    `;
+  }
+
+  cont.innerHTML = `
+    <div style="display:flex; gap:6px; margin-bottom:16px;">
+      <button class="btn ${filtroInformes === 'hoy' ? 'btn-primary' : 'btn-ghost'}" style="flex:1;" onclick="cambiarFiltroInformes('hoy')">Hoy</button>
+      <button class="btn ${filtroInformes === 'semana' ? 'btn-primary' : 'btn-ghost'}" style="flex:1;" onclick="cambiarFiltroInformes('semana')">7 días</button>
+      <button class="btn ${filtroInformes === 'todo' ? 'btn-primary' : 'btn-ghost'}" style="flex:1;" onclick="cambiarFiltroInformes('todo')">Todo</button>
+    </div>
+
+    <div class="stats" style="margin-top:0; margin-bottom:20px;">
+      <div class="stat"><span class="n">${pedidos.length}</span><span class="l">Pedidos totales</span></div>
+      <div class="stat"><span class="n">${entregados.length}</span><span class="l">Entregados</span></div>
+      <div class="stat"><span class="n">${enCurso.length}</span><span class="l">En curso</span></div>
+      <div class="stat"><span class="n">$${totalRecaudadoDomicilios.toLocaleString('es-CO')}</span><span class="l">Recaudado en domicilios</span></div>
+    </div>
+
+    <div class="stats" style="margin-top:0; margin-bottom:20px;">
+      <div class="stat"><span class="n" style="color:var(--mango);">$${totalComisionCasa.toLocaleString('es-CO')}</span><span class="l">Para GoHouse</span></div>
+      <div class="stat"><span class="n" style="color:var(--green);">$${totalComisionDomiciliarios.toLocaleString('es-CO')}</span><span class="l">Para domiciliarios</span></div>
+    </div>
+
+    <h2>Por domiciliario <span class="count">(toca uno para ver sus servicios)</span></h2>
+    ${Object.keys(porDomiciliario).length === 0
+      ? '<div class="empty">Sin entregas en este periodo.</div>'
+      : Object.entries(porDomiciliario).map(([repId, d]) => `
+        <div class="repartidor-card" style="cursor:pointer; ${domiciliarioSeleccionadoInforme === repId ? 'border-color:var(--mango);' : ''}" onclick="seleccionarDomiciliarioInforme('${repId}')">
+          <div class="repartidor-info"><div class="repartidor-name">${escapeHtml(d.nombre)}</div></div>
+          <div style="text-align:right;">
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.85rem;">${d.count} entregas</div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:var(--green);">$${d.ganancia.toLocaleString('es-CO')}</div>
+          </div>
+        </div>
+      `).join('')
+    }
+
+    ${detalleDomiciliarioHtml}
+
+    <h2>Por forma de pago</h2>
+    ${Object.keys(porPago).length === 0
+      ? '<div class="empty">Sin pedidos en este periodo.</div>'
+      : Object.entries(porPago).map(([metodo, count]) => `
+        <div class="summary-line"><span>${escapeHtml(metodo)}</span><span>${count} pedido${count === 1 ? '' : 's'}</span></div>
+      `).join('')
+    }
+  `;
+}
+
+let domiciliarioSeleccionadoInforme = null;
+
+function seleccionarDomiciliarioInforme(repId){
+  domiciliarioSeleccionadoInforme = (domiciliarioSeleccionadoInforme === repId) ? null : repId;
+  render();
+}
+
+let anchoPOS = localStorage.getItem('gohouse-pos-ancho') || '80';
+let liquidacionActual = null;
+
+function cambiarAnchoPOS(mm){
+  anchoPOS = mm;
+  try{ localStorage.setItem('gohouse-pos-ancho', mm); }catch(e){}
+  document.getElementById('btn-ancho-58').classList.toggle('btn-ancho-activo', mm === '58');
+  document.getElementById('btn-ancho-80').classList.toggle('btn-ancho-activo', mm === '80');
+}
+
+function prepararLiquidacion(repId){
+  const rep = data.repartidores.find(r => r.id === repId);
+  const nombre = rep ? rep.nombre : 'Sin asignar';
+
+  const pendientes = data.orders.filter(o =>
+    o.repartidorId === repId && o.estado === 'entregado' && !o.liquidado
+  );
+
+  if(pendientes.length === 0){
+    showToast('No hay servicios pendientes de liquidar para ' + nombre + '.');
+    return;
+  }
+
+  const totalGanancia = pendientes.reduce((sum, o) => sum + ((o.tarifa || 0) - (o.comisionCasa || 0)), 0);
+
+  liquidacionActual = { repId, nombre, cantidad: pendientes.length, total: totalGanancia, orderIds: pendientes.map(o => o.id) };
+
+  document.getElementById('liquidacion-resumen').innerHTML = `
+    <div class="summary-line"><span>Domiciliario</span><span>${escapeHtml(nombre)}</span></div>
+    <div class="summary-line"><span>Servicios pendientes</span><span>${pendientes.length}</span></div>
+    <div class="summary-line"><span>Valor a liquidar</span><span style="color:var(--green); font-weight:600;">$${totalGanancia.toLocaleString('es-CO')}</span></div>
+  `;
+
+  cambiarAnchoPOS(anchoPOS);
+  document.getElementById('modal-liquidacion').style.display = 'flex';
+}
+
+function cerrarModalLiquidacion(){
+  document.getElementById('modal-liquidacion').style.display = 'none';
+  liquidacionActual = null;
+}
+
+function imprimirLiquidacion(){
+  if(!liquidacionActual) return;
+
+  let pageStyle = document.getElementById('pos-page-style');
+  if(!pageStyle){
+    pageStyle = document.createElement('style');
+    pageStyle.id = 'pos-page-style';
+    document.head.appendChild(pageStyle);
+  }
+  pageStyle.textContent = `@page{ size: ${anchoPOS}mm auto; margin: 2mm; }`;
+
+  const fecha = new Date().toLocaleDateString('es-CO', { day:'numeric', month:'long', year:'numeric' });
+
+  document.getElementById('pos-print-area').innerHTML = `
+    <div class="pos-center"><b>¡GO! HOUSE MENSAJERÍA</b></div>
+    <div class="pos-center">Liquidación de domiciliario</div>
+    <div class="pos-line"></div>
+    <div class="pos-row"><span>Domiciliario:</span><span>${escapeHtml(liquidacionActual.nombre)}</span></div>
+    <div class="pos-row"><span>Fecha:</span><span>${fecha}</span></div>
+    <div class="pos-line"></div>
+    <div class="pos-row"><span>Cantidad de servicios:</span><span>${liquidacionActual.cantidad}</span></div>
+    <div class="pos-row"><b>Valor a liquidar:</b><b>$${liquidacionActual.total.toLocaleString('es-CO')}</b></div>
+    <div class="pos-line"></div>
+    <div class="pos-firma">Firma de recibido</div>
+  `;
+
+  window.print();
+}
+
+function confirmarLiquidacionPagada(){
+  if(!liquidacionActual) return;
+  if(!confirm(`¿Confirmas que ya le pagaste $${liquidacionActual.total.toLocaleString('es-CO')} a ${liquidacionActual.nombre}? Esto marca sus ${liquidacionActual.cantidad} servicios como liquidados y no volverán a aparecer pendientes.`)){
+    return;
+  }
+
+  liquidacionActual.orderIds.forEach(id => {
+    const orden = data.orders.find(o => o.id === id);
+    if(orden) orden.liquidado = true;
+  });
+
+  saveData().then(() => {
+    showToast('Liquidación registrada.');
+    cerrarModalLiquidacion();
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+// ---- CHAT CON DOMICILIARIO ----
+let chatPanelRef = null;
+let chatPanelListener = null;
+let chatPanelActualKey = null;
+
+function abrirChatGenerico(pathBase, personId, nombre){
+  cerrarChatConDomiciliario();
+  chatPanelActualKey = pathBase + '/' + personId;
+  document.getElementById('chat-panel-titulo').textContent = 'Chat con ' + nombre;
+  document.getElementById('chat-panel-modal').style.display = 'flex';
+
+  chatsSinLeer[chatPanelActualKey] = 0;
+  actualizarBadgeChats();
+
+  chatPanelRef = dbRef.parent.child(pathBase).child(personId);
+  chatPanelListener = snapshot => {
+    const mensajes = [];
+    snapshot.forEach(child => { mensajes.push(child.val()); });
+    renderMensajesChatPanel(mensajes);
+  };
+  chatPanelRef.on('value', chatPanelListener);
+}
+
+function abrirChatConDomiciliario(repId, nombre){
+  abrirChatGenerico('chatsPanel', repId, nombre);
+}
+
+function abrirChatConCliente(celular, nombre){
+  if(!celular) { showToast('Este pedido no tiene un celular válido para chatear.'); return; }
+  const key = celular.replace(/[.#$/\[\]\s]/g, '');
+  abrirChatGenerico('chatsClientes', key, nombre);
+}
+
+function cerrarChatConDomiciliario(){
+  if(chatPanelRef && chatPanelListener){ chatPanelRef.off('value', chatPanelListener); }
+  chatPanelRef = null;
+  chatPanelListener = null;
+  chatPanelActualKey = null;
+  document.getElementById('chat-panel-modal').style.display = 'none';
+}
+
+function renderMensajesChatPanel(mensajes){
+  const cont = document.getElementById('chat-panel-mensajes');
+  if(mensajes.length === 0){
+    cont.innerHTML = '<div class="empty" style="text-align:center; padding:20px 10px;">Escríbele algo a tu domiciliario.</div>';
+  } else {
+    cont.innerHTML = mensajes.map(m => `
+      <div class="chat-msg ${m.de === 'panel' ? 'propio' : 'ajeno'}">
+        ${escapeHtml(m.texto)}
+        <span class="chat-hora">${fmtTime(m.hora)}</span>
+      </div>
+    `).join('');
+  }
+  cont.scrollTop = cont.scrollHeight;
+}
+
+function enviarMensajeChatPanel(){
+  if(!chatPanelRef) return;
+  const input = document.getElementById('chat-panel-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  chatPanelRef.push({ de: 'panel', texto, hora: Date.now() }).catch(err => { console.error('Error enviando chat:', err); showToast('No se pudo enviar: ' + err.message); });
+  input.value = '';
+}
+
+function reproducirBeep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 740;
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  }catch(e){ console.error('No se pudo reproducir el sonido:', e); }
+}
+
+function cargarConteosGuardados(){
+  try{
+    const raw = localStorage.getItem('gohouse-conteos-chat');
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+
+function guardarConteos(){
+  try{ localStorage.setItem('gohouse-conteos-chat', JSON.stringify(ultimosConteosChat)); }
+  catch(e){ /* si falla, no pasa nada grave */ }
+}
+
+let ultimosConteosChat = cargarConteosGuardados();
+let chatsSinLeer = {};
+
+function actualizarBadgeChats(){
+  const total = Object.values(chatsSinLeer).reduce((a, b) => a + b, 0);
+  const el = document.getElementById('badge-chats-sin-leer');
+  if(total > 0){
+    el.textContent = total > 9 ? '9+' : total;
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+let pedidosYaAlertados = new Set();
+
+function iniciarMonitorDemoras(){
+  setInterval(actualizarTiemposEnPantalla, 10000);
+}
+
+function actualizarTiemposEnPantalla(){
+  document.querySelectorAll('#lista-pedidos .ticket[data-created]').forEach(ticket => {
+    const created = parseInt(ticket.dataset.created, 10);
+    const estado = ticket.dataset.estado;
+    const minutos = Math.floor((Date.now() - created) / 60000);
+
+    const span = ticket.querySelector('.tiempo-espera');
+    if(span) span.textContent = minutos + ' min';
+
+    const esDemorado = estado === 'nuevo' && minutos >= 5;
+    ticket.classList.toggle('ticket-demorado', esDemorado);
+
+    if(esDemorado && !pedidosYaAlertados.has(created)){
+      pedidosYaAlertados.add(created);
+      reproducirBeep();
+      showToast('⚠️ Un pedido lleva más de 5 minutos sin domiciliario.');
+    }
+  });
+}
+
+
+let monitorChatsYaIniciado = false;
+
+function iniciarMonitorChats(){
+  if(monitorChatsYaIniciado){
+    console.log('[DEBUG] Monitor de chats ya estaba iniciado, no se duplica.');
+    return;
+  }
+  monitorChatsYaIniciado = true;
+  console.log('[DEBUG] Iniciando monitor de chats...');
+  dbRef.parent.child('chatsPanel').on('value', snap => {
+    console.log('[DEBUG] Evento en chatsPanel', snap.val());
+    monitorearCambiosChat('chatsPanel', snap);
+  });
+  dbRef.parent.child('chatsClientes').on('value', snap => {
+    console.log('[DEBUG] Evento en chatsClientes', snap.val());
+    monitorearCambiosChat('chatsClientes', snap);
+  });
+}
+
+function monitorearCambiosChat(pathBase, snapshot){
+  console.log('[DEBUG] monitorearCambiosChat', pathBase);
+
+  snapshot.forEach(childSnap => {
+    const personId = childSnap.key;
+    const key = pathBase + '/' + personId;
+    const mensajes = [];
+    childSnap.forEach(m => mensajes.push(m.val()));
+    const count = mensajes.length;
+    const esConocido = Object.prototype.hasOwnProperty.call(ultimosConteosChat, key);
+    const anterior = esConocido ? ultimosConteosChat[key] : count;
+
+    console.log('[DEBUG]  ->', key, 'count:', count, 'anterior:', anterior, 'esConocido:', esConocido, 'chatPanelActualKey:', chatPanelActualKey);
+
+    if(esConocido && count > anterior){
+      const ultimo = mensajes[mensajes.length - 1];
+      console.log('[DEBUG]     mensaje nuevo detectado:', ultimo);
+      if(ultimo && ultimo.de !== 'panel' && chatPanelActualKey !== key){
+        console.log('[DEBUG]     -> disparando alerta');
+        reproducirBeep();
+        const tipoTexto = pathBase === 'chatsPanel' ? 'domiciliario' : 'cliente';
+        showToast('Nuevo mensaje de un ' + tipoTexto + ': ' + (ultimo.texto || '📷 foto').slice(0, 50));
+        chatsSinLeer[key] = (chatsSinLeer[key] || 0) + (count - anterior);
+        actualizarBadgeChats();
+      } else {
+        console.log('[DEBUG]     -> NO se dispara alerta (era del panel mismo, o el chat ya está abierto)');
+      }
+    }
+    ultimosConteosChat[key] = count;
+    guardarConteos();
+  });
+}
+
+function verFotoCompletaPanel(src){
+  document.getElementById('chat-foto-viewer-img').src = src;
+  document.getElementById('chat-foto-viewer').style.display = 'flex';
+}
+
+function cerrarVisorFotoPanel(){
+  document.getElementById('chat-foto-viewer').style.display = 'none';
+}
+
+// ---- AUTENTICACIÓN Y ROLES ----
+let usuarioActual = null;
+let rolActual = null;
+
+function emailAKey(email){
+  return email.toLowerCase().replace(/\./g, ',');
+}
+
+async function revisarBootstrapPanel(){
+  const login = document.getElementById('login-box');
+  const box = document.getElementById('bootstrap-box');
+  try{
+    const out = await GoHouseVPS.api('/bootstrap/status');
+    if(out?.needsAdmin){
+      login.style.display = 'none';
+      box.style.display = 'block';
+      return true;
+    }
+  }catch(e){ console.warn('No se pudo comprobar bootstrap:', e.message); }
+  box.style.display = 'none';
+  login.style.display = 'block';
+  return false;
+}
+
+async function crearAdministradorInicial(){
+  const email = document.getElementById('bootstrap-email').value.trim();
+  const password = document.getElementById('bootstrap-password').value;
+  const password2 = document.getElementById('bootstrap-password-2').value;
+  const err = document.getElementById('bootstrap-error');
+  const btn = document.getElementById('bootstrap-btn');
+  err.style.display = 'none';
+  if(!email || !password){ err.textContent='Completa correo y contraseña.'; err.style.display='block'; return; }
+  if(password.length < 10){ err.textContent='La contraseña debe tener mínimo 10 caracteres.'; err.style.display='block'; return; }
+  if(password !== password2){ err.textContent='Las contraseñas no coinciden.'; err.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Creando…';
+  try{
+    await GoHouseVPS.api('/bootstrap/admin', { method:'POST', body:JSON.stringify({ email,password }) });
+    document.getElementById('bootstrap-box').style.display='none';
+    document.getElementById('login-email').value=email;
+    document.getElementById('login-password').value=password;
+    await auth.signInWithEmailAndPassword(email,password);
+  }catch(e){
+    err.textContent = e.message === 'BOOTSTRAP_CLOSED' ? 'La configuración inicial ya fue realizada. Recarga la página.' : 'No se pudo crear el administrador: ' + e.message;
+    err.style.display='block';
+  }finally{ btn.disabled=false; btn.textContent='Crear administrador principal'; }
+}
+
+function iniciarSesionPanel(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if(!email || !password){
+    errEl.textContent = 'Escribe tu correo y contraseña.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  auth.signInWithEmailAndPassword(email, password).catch(err => {
+    console.error(err);
+    errEl.textContent = 'Correo o contraseña incorrectos.';
+    errEl.style.display = 'block';
+  });
+}
+
+function cerrarSesionPanel(){
+  auth.signOut();
+}
+
+function mostrarLogin(){
+  document.getElementById('login-box').style.display = 'block';
+  document.getElementById('bootstrap-box').style.display = 'none';
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('loading-note').style.display = 'none';
+  document.getElementById('btn-logout').style.display = 'none';
+  revisarBootstrapPanel();
+}
+
+async function resolverRolYArrancar(user){
+  document.getElementById('login-box').style.display = 'none';
+  document.getElementById('loading-note').style.display = 'block';
+  document.getElementById('loading-note').textContent = 'Verificando acceso…';
+
+  let usuarios;
+  try{
+    const snap = await conTiempoLimite(
+      dbRef.child('usuariosPanel').once('value'),
+      10000,
+      'Tiempo de espera agotado verificando tu acceso.'
+    );
+    usuarios = snap.val() || {};
+  }catch(e){
+    console.error('Error verificando acceso:', e);
+    document.getElementById('loading-note').textContent =
+      'No se pudo verificar tu acceso: ' + e.message;
+    return;
+  }
+
+  const key = emailAKey(user.email);
+
+  if(Object.keys(usuarios).length === 0){
+    // Nadie configurado todavía: el primero en entrar queda como administrador
+    try{
+      await conTiempoLimite(
+        dbRef.child('usuariosPanel').child(key).set({ email: user.email, rol: 'administrador' }),
+        10000,
+        'Tiempo de espera agotado creando tu usuario administrador.'
+      );
+    }catch(e){
+      console.error('Error creando el primer administrador:', e);
+      document.getElementById('loading-note').textContent =
+        'No se pudo crear tu usuario administrador: ' + e.message;
+      return;
+    }
+    rolActual = 'administrador';
+  } else if(usuarios[key]){
+    rolActual = usuarios[key].rol;
+  } else {
+    document.getElementById('loading-note').textContent = 'Tu cuenta no tiene permiso para usar este panel. Pide al administrador que te agregue en Configuración → Seguridad.';
+    auth.signOut();
+    return;
+  }
+
+  usuarioActual = user;
+  document.getElementById('btn-logout').style.display = 'inline-block';
+  aplicarPermisosUI();
+  iniciarEscuchaEnVivo();
+  iniciarMonitorChats();
+  iniciarMonitorDemoras();
+}
+
+function aplicarPermisosUI(){
+  const tabAjustes = document.getElementById('tab-ajustes');
+  const tabPedidos = document.getElementById('tab-pedidos');
+  const tabUsuarios = document.getElementById('tab-usuarios');
+  if(rolActual === 'administrador'){
+    tabAjustes.style.display = 'block';
+    tabPedidos.style.display = 'block';
+    tabUsuarios.style.display = 'block';
+  } else if(rolActual === 'operador'){
+    tabAjustes.style.display = 'none';
+    tabPedidos.style.display = 'block';
+    tabUsuarios.style.display = 'block';
+  } else {
+    tabAjustes.style.display = 'none';
+    tabPedidos.style.display = 'none';
+    tabUsuarios.style.display = 'none';
+    cambiarVistaPanel('informes');
+  }
+}
+
+console.log('%c[VERSION] gohouse-panel — build con guardarConteos + monitorChatsYaIniciado + catch en push()', 'background:#ff8c42; color:#000; font-weight:bold; padding:4px 8px;');
+
+auth.onAuthStateChanged(user => {
+  if(user && user.email){
+    resolverRolYArrancar(user);
+  } else {
+    if(user) auth.signOut(); // sesión anónima colada de otra app, no sirve para el panel
+    usuarioActual = null;
+    rolActual = null;
+    mostrarLogin();
+  }
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker-panel.js').catch(e => console.log('SW no registrado:', e));
+  });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script defer src="gohouse-branding.js?v=20260915.2"></script>
+<title>Servicio de domicilios</title>
+<link rel="manifest" href="/api/manifest.webmanifest?app=client">
+<meta name="theme-color" content="#0F1B2B">
+<link rel="icon" href="brand-placeholder.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Domicilios">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0F1B2B;
+    --surface: #16273D;
+    --surface-2: #1D3350;
+    --line: #2A415F;
+    --teal: #34C6C0;
+    --teal-dim: #1B4A48;
+    --orange: #FF8C42;
+    --orange-dim: #5A3B24;
+    --green: #4FD98D;
+    --green-dim: #23472F;
+    --slate: #7E93AC;
+    --red: #FF6B6B;
+    --text: #EAF1F7;
+    --text-dim: #93A7BE;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body{
+    margin:0; background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+
+  .app{ max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 40px; }
+
+  header{
+    padding: 18px 18px 14px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--bg); z-index: 20;
+  }
+  .logo-row{ display:flex; align-items:center; gap: 10px; justify-content: space-between; }
+  .logo-left{ display:flex; align-items:center; gap: 10px; }
+  .logo-mark{
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+    box-shadow: 0 0 0 2px var(--line);
+  }
+  .logo-mark img{ width: 100%; height: 100%; object-fit: cover; display:block; }
+  h1{ font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.25rem; margin: 0; letter-spacing: -0.01em; }
+  .tag{ font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.06em; }
+  .fake-badge{
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; text-transform: uppercase;
+    color: var(--orange); background: var(--orange-dim); padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+  }
+  .logout-link{
+    background:none; border:none; color: var(--text-dim); font-size: 0.68rem; text-decoration: underline;
+    cursor: pointer; padding: 0; margin-top: 6px;
+  }
+
+  main{ padding: 18px; }
+
+  .step{ display:none; }
+  .step.active{ display:block; }
+
+  section h2{
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 600; margin: 22px 0 12px;
+  }
+  section h2:first-child{ margin-top: 0; }
+
+  .group-label{
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-dim); margin: 18px 0 8px;
+  }
+  .group-label:first-child{ margin-top: 0; }
+
+  .intro-card{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; margin-bottom: 20px; font-size: 0.85rem; color: var(--text-dim);
+  }
+  .intro-card b{ color: var(--text); }
+
+  .home-card{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; margin-bottom: 14px; cursor: pointer; display:flex; align-items:center; gap: 14px;
+  }
+  .home-card:active{ transform: scale(0.98); }
+  .home-icon{
+    width: 44px; height: 44px; border-radius: 10px; background: var(--teal-dim); color: var(--teal);
+    display:flex; align-items:center; justify-content:center; font-size: 1.3rem; flex-shrink: 0;
+  }
+  .home-title{ font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.02rem; }
+  .home-sub{ font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+
+  .welcome-card{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; margin-bottom: 18px;
+  }
+  .welcome-hi{ font-size: 0.75rem; color: var(--text-dim); }
+  .welcome-name{ font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; margin-top: 2px; }
+
+  label{ font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; display:block; margin-bottom: 4px; }
+  input, textarea, select{
+    width: 100%; background: var(--surface); border: 1px solid var(--line); color: var(--text);
+    padding: 11px 12px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; margin-bottom: 14px;
+  }
+  input:focus, textarea:focus, select:focus{ outline: 2px solid var(--teal); outline-offset: 1px; }
+  textarea{ resize: vertical; min-height: 70px; }
+  .hint{ font-size: 0.72rem; color: var(--text-dim); margin-top: -10px; margin-bottom: 14px; }
+
+  .pay-option{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+  }
+  .pay-option.selected{ border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+  .pay-option-head{ display:flex; align-items:center; gap: 10px; font-weight: 600; }
+  .pay-radio{ width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--slate); flex-shrink: 0; }
+  .pay-option.selected .pay-radio{ border-color: var(--teal); background: radial-gradient(var(--teal) 40%, transparent 44%); }
+
+  .qr-box{
+    margin-top: 10px; background: var(--surface-2); border-radius: 8px; padding: 16px;
+    display:flex; flex-direction: column; align-items:center; gap: 8px;
+  }
+  .qr-placeholder{
+    width: 150px; height: 150px; border: 2px dashed var(--slate); border-radius: 8px;
+    display:flex; align-items:center; justify-content:center; text-align:center; padding: 10px;
+    color: var(--text-dim); font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;
+  }
+  .qr-account{ font-size: 0.8rem; font-weight: 600; }
+
+  .upload-box{
+    margin-top: 10px; border: 1px dashed var(--line); border-radius: 8px; padding: 14px;
+    text-align: center; font-size: 0.82rem; color: var(--text-dim); cursor: pointer;
+  }
+  .upload-box.has-file{ border-color: var(--green); color: var(--green); }
+  .upload-box input[type=file]{ display:none; }
+
+  .btn{
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9rem;
+    border: none; border-radius: 10px; padding: 13px 16px; cursor: pointer; width: 100%;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--teal); color: #06201E; }
+  .btn-ghost{ background: transparent; border: 1px solid var(--line); color: var(--text); }
+  .btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+  .back-link{
+    background:none; border:none; color: var(--text-dim); font-size: 0.85rem;
+    padding: 0; margin-bottom: 16px; cursor:pointer; display:flex; align-items:center; gap: 6px;
+  }
+
+  .summary-line{ display:flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid var(--line); gap: 10px; }
+  .summary-line span:first-child{ color: var(--text-dim); flex-shrink: 0; }
+  .summary-line span:last-child{ text-align: right; }
+
+  .tracker{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .tracker-number{ font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); }
+  .tracker-title{ font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem; margin: 4px 0 18px; }
+  .tiempo-transcurrido{
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--orange);
+    background: var(--orange-dim); display: inline-block; padding: 5px 12px; border-radius: 20px;
+    margin: -10px 0 18px;
+  }
+
+  .track-steps{ display:flex; flex-direction: column; gap: 0; }
+  .track-step{ display:flex; gap: 12px; }
+  .track-step-marker{ display:flex; flex-direction: column; align-items:center; }
+  .track-dot{
+    width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size: 0.7rem; flex-shrink: 0;
+  }
+  .track-step.done .track-dot{ background: var(--green); border-color: var(--green); color: #0E2417; }
+  .track-step.current .track-dot{ background: var(--teal); border-color: var(--teal); color: #06201E; animation: pulseDot 1.5s ease-in-out infinite; }
+  @keyframes pulseDot{ 0%,100%{ box-shadow: 0 0 0 0 rgba(52,198,192,0.5);} 50%{ box-shadow: 0 0 0 6px rgba(52,198,192,0);} }
+  .track-line{ width: 2px; flex: 1; background: var(--line); min-height: 24px; }
+  .track-step.done .track-line{ background: var(--green); }
+  .track-step-body{ padding-bottom: 22px; flex: 1; }
+  .track-step-title{ font-weight: 600; font-size: 0.9rem; }
+  .track-step-sub{ font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+
+  .empty{
+    color: var(--text-dim); font-size: 0.85rem; border: 1px dashed var(--line); border-radius: 12px;
+    padding: 26px 16px; text-align: center;
+  }
+
+  .hist-item{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px; margin-bottom: 10px; cursor: pointer;
+  }
+  .hist-item:active{ transform: scale(0.98); }
+  .hist-top{ display:flex; justify-content: space-between; align-items:center; margin-bottom: 4px; }
+  .hist-numero{ font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); }
+  .hist-badge{
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .hist-badge.entregado{ background: var(--green-dim); color: var(--green); }
+  .hist-badge.curso{ background: var(--orange-dim); color: var(--orange); }
+  .hist-desc{ font-size: 0.85rem; color: var(--text); }
+
+  .verify-boxes{ display:flex; gap: 10px; justify-content:center; margin: 20px 0; }
+  .verify-box{
+    width: 48px; height: 56px; text-align:center; font-size: 1.4rem; font-family: 'JetBrains Mono', monospace;
+    padding: 0; margin: 0;
+  }
+
+  .toast{
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+    padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease; z-index: 50; max-width: 90%; text-align:center;
+  }
+  .toast.show{ opacity: 1; }
+  .chat-fab{
+    position: fixed; bottom: 20px; right: 20px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: var(--orange); border: none; font-size: 1.4rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3); z-index: 60; cursor: pointer;
+  }
+  .chat-badge{
+    position: absolute; top: -2px; right: -2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #ff4444; color: #fff; font-size: 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .chat-panel{
+    position: fixed; bottom: 20px; right: 20px; left: 20px; max-width: 380px; margin: 0 auto;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 61;
+    display: flex; flex-direction: column; height: 60vh; max-height: 460px;
+  }
+  .chat-header{
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 0.9rem;
+  }
+  .chat-close{ background: none; border: none; color: var(--text-dim); font-size: 1rem; cursor: pointer; }
+  .chat-mensajes{ flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-msg{ max-width: 78%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.35; }
+  .chat-msg.propio{ align-self: flex-end; background: var(--orange); color: #1a1204; border-bottom-right-radius: 4px; }
+  .chat-msg.ajeno{ align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
+  .chat-msg .chat-hora{ display: block; font-size: 0.6rem; opacity: 0.7; margin-top: 3px; }
+  .chat-input-row{ display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+  .chat-input-row input[type="text"]{ flex: 1; margin: 0; }
+  .chat-input-row button{
+    background: var(--orange); border: none; color: #1a1204; width: 40px; border-radius: 8px; font-size: 1rem; cursor: pointer; flex-shrink:0;
+  }
+  .chat-msg img{ max-width: 100%; border-radius: 8px; display: block; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo-row">
+      <div class="logo-left">
+        <div class="logo-mark"><img src="brand-placeholder.svg" alt="Logo GO! House Mensajería"></div>
+        <div><h1>¡GO! HOUSE</h1><span class="tag">Mensajería</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- REGISTRO -->
+    <div class="step active" id="step-registro">
+      <div class="intro-card">
+        Regístrate una sola vez. La próxima vez que abras la app, no vas a tener que escribir tus datos de nuevo.
+      </div>
+      <label>Nombre completo</label>
+      <input type="text" id="reg-nombre" placeholder="Tu nombre completo">
+      <label>Documento de identidad</label>
+      <input type="text" id="reg-cedula" placeholder="Cédula o documento">
+      <label>Celular</label>
+      <input type="text" id="reg-celular" placeholder="300 000 0000">
+      <label>Dirección</label>
+      <input type="text" id="reg-direccion" placeholder="Barrio, calle, referencia">
+      <label>Ciudad</label>
+      <input type="text" id="reg-ciudad" placeholder="Ej: Yarumal" value="Yarumal">
+      <button class="btn btn-primary" onclick="enviarRegistro()">Registrarme</button>
+    </div>
+
+    <!-- COMPLETAR PERFIL (si se perdieron datos al verificar) -->
+    <div class="step" id="step-completar">
+      <div class="intro-card" style="border-color:var(--orange); background:var(--orange-dim);">
+        Nos faltan algunos de tus datos. Complétalos para continuar.
+      </div>
+      <label>Nombre completo</label>
+      <input type="text" id="comp-nombre" placeholder="Tu nombre completo">
+      <label>Documento de identidad</label>
+      <input type="text" id="comp-cedula" placeholder="Cédula o documento">
+      <label>Celular</label>
+      <input type="text" id="comp-celular" placeholder="300 000 0000">
+      <label>Dirección</label>
+      <input type="text" id="comp-direccion" placeholder="Barrio, calle, referencia">
+      <label>Ciudad</label>
+      <input type="text" id="comp-ciudad" placeholder="Ej: Yarumal" value="Yarumal">
+      <button class="btn btn-primary" onclick="guardarPerfilCompletado()">Guardar mis datos</button>
+    </div>
+
+    <!-- HOME -->
+    <div class="step" id="step-home">
+      <div class="welcome-card">
+        <div class="welcome-hi">Hola de nuevo,</div>
+        <div class="welcome-name" id="welcome-nombre">—</div>
+        <button class="logout-link" onclick="cerrarSesionDemo()">No soy yo / reiniciar demo</button>
+      </div>
+      <div class="home-card" onclick="goStep('mandado')">
+        <div class="home-icon">+</div>
+        <div>
+          <div class="home-title">Pedir un domicilio nuevo</div>
+          <div class="home-sub">Solo dinos a dónde ir y qué necesitas</div>
+        </div>
+      </div>
+      <div class="home-card" onclick="goStep('historial-lista'); cargarMiHistorial();">
+        <div class="home-icon">↻</div>
+        <div>
+          <div class="home-title">Ver mis pedidos</div>
+          <div class="home-sub">Historial y seguimiento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANDADO -->
+    <div class="step" id="step-mandado">
+      <button class="back-link" onclick="goStep('home')">← Inicio</button>
+      <h2 style="margin-top:0">¿Qué necesitas?</h2>
+      <label>¿A qué lugar debemos ir?</label>
+      <input type="text" id="in-lugar" placeholder="Ej: D1, Éxito, farmacia, panadería...">
+      <label>¿Qué necesitas que hagamos o compremos?</label>
+      <textarea id="in-descripcion" placeholder="Describe con el mayor detalle posible: producto, marca, cantidad, o la vuelta que necesitas"></textarea>
+
+      <div class="group-label">¿A dónde llevamos lo comprado?</div>
+      <div class="pay-option" data-destino="registrada" onclick="selectDestino('registrada')">
+        <div class="pay-option-head"><span class="pay-radio"></span> Llevar a mi dirección registrada</div>
+        <div id="direccion-registrada-box" style="display:none; margin-top:8px; font-size:0.85rem; color:var(--text-dim);">
+          📍 <span id="direccion-registrada-texto"></span>
+        </div>
+      </div>
+      <div class="pay-option" data-destino="otra" onclick="selectDestino('otra')">
+        <div class="pay-option-head"><span class="pay-radio"></span> Llevar a otra dirección</div>
+        <div id="otra-direccion-box" style="display:none; margin-top:8px;">
+          <input type="text" id="in-direccion" placeholder="Escribe la dirección de entrega" style="margin-bottom:0;">
+        </div>
+      </div>
+      <div class="hint" style="margin-top:8px">Útil si no vas a estar en casa cuando llegue el domiciliario.</div>
+
+      <button class="btn btn-primary" onclick="confirmarPedido()" id="btn-confirmar">Enviar domicilio</button>
+    </div>
+
+    <!-- COBRO (aparece cuando el domiciliario ya está en camino/llegó) -->
+    <div class="step" id="step-cobro">
+      <button class="back-link" onclick="mostrarSeguimiento(pedidoActualId)">← Volver al seguimiento</button>
+      <h2 style="margin-top:0">¿Cómo vas a pagar?</h2>
+      <div id="resumen-cobro"></div>
+      <div class="intro-card">Elige cómo le vas a pagar al domiciliario cuando te entregue el pedido.</div>
+
+      <div class="group-label">Efectivo</div>
+      <div class="pay-option" data-pago="Efectivo" onclick="selectPagoEntrega('Efectivo')">
+        <div class="pay-option-head"><span class="pay-radio"></span> Le doy la plata al domiciliario</div>
+      </div>
+
+      <div class="group-label">Electrónico</div>
+      <div class="pay-option" data-pago="Nequi/Daviplata" onclick="selectPagoEntrega('Nequi/Daviplata')">
+        <div class="pay-option-head"><span class="pay-radio"></span> Nequi / Daviplata (QR)</div>
+        <div class="qr-box" id="qr-box-entrega" style="display:none;">
+          <div class="qr-placeholder">⚠ Aquí va el QR real de GoHouse</div>
+          <div class="qr-account">Cuenta: [pendiente]</div>
+        </div>
+      </div>
+
+      <div class="pay-option" data-pago="Ya pagué" onclick="selectPagoEntrega('Ya pagué')">
+        <div class="pay-option-head"><span class="pay-radio"></span> Ya pagué (adjuntar comprobante)</div>
+        <div id="upload-box-entrega" class="upload-box" style="display:none;" onclick="event.stopPropagation(); document.getElementById('in-comprobante-entrega').click();">
+          📎 Toca para adjuntar el comprobante
+          <input type="file" id="in-comprobante-entrega" accept="image/*" onchange="onComprobanteEntrega(event)">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:16px" id="btn-confirmar-pago" onclick="confirmarPagoEntrega()" disabled>Confirmar forma de pago</button>
+    </div>
+
+    <!-- SEGUIMIENTO -->
+    <div class="step" id="step-seguimiento">
+      <button class="back-link" onclick="goStep('home')">← Inicio</button>
+      <div id="tracker-container"></div>
+    </div>
+
+    <!-- NOTIFICACIÓN DE CHAT PERSISTENTE (se queda hasta que la cierres) -->
+    <div id="chat-notif-banner" style="display:none; position:fixed; top:14px; left:14px; right:14px; z-index:80; background:var(--surface-2); border:1px solid var(--orange); border-radius:12px; padding:12px 14px; box-shadow:0 6px 24px rgba(0,0,0,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+        <div id="chat-notif-texto" style="font-size:0.85rem; cursor:pointer; flex:1;" onclick="abrirDesdeNotifChat()"></div>
+        <button onclick="cerrarNotifChat()" style="background:none; border:none; color:var(--text-dim); font-size:1rem; cursor:pointer; flex-shrink:0;">✕</button>
+      </div>
+    </div>
+
+    <!-- CHAT DE SOPORTE CON GOHOUSE (siempre disponible, no depende de un pedido) -->
+    <button id="chat-soporte-btn" class="chat-fab" style="display:none; left:20px; right:auto; background:var(--orange);" onclick="toggleChatSoporte()">
+      🏠<span id="chat-soporte-badge" class="chat-badge" style="display:none;"></span>
+    </button>
+    <div id="chat-soporte-panel" class="chat-panel" style="display:none;">
+      <div class="chat-header">
+        <span>Chat con GoHouse</span>
+        <button class="chat-close" onclick="toggleChatSoporte()">✕</button>
+      </div>
+      <div id="chat-soporte-mensajes" class="chat-mensajes"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-soporte-input" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensajeChatSoporte()">
+        <button onclick="enviarMensajeChatSoporte()">➤</button>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <button id="chat-btn" class="chat-fab" style="display:none;" onclick="toggleChat()">
+      💬<span id="chat-badge" class="chat-badge" style="display:none;"></span>
+    </button>
+    <div id="chat-panel" class="chat-panel" style="display:none;">
+      <div class="chat-header">
+        <span>Chat con el domiciliario</span>
+        <button class="chat-close" onclick="toggleChat()">✕</button>
+      </div>
+      <div id="chat-mensajes" class="chat-mensajes"></div>
+      <div class="chat-input-row">
+        <button onclick="document.getElementById('chat-camara-input').click()">📷</button>
+        <input type="file" id="chat-camara-input" accept="image/*" capture="environment" style="display:none;" onchange="enviarFotoChat(event)">
+        <button onclick="document.getElementById('chat-foto-input').click()">📎</button>
+        <input type="file" id="chat-foto-input" accept="image/*" style="display:none;" onchange="enviarFotoChat(event)">
+        <input type="text" id="chat-input" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensajeChat()">
+        <button onclick="enviarMensajeChat()">➤</button>
+      </div>
+    </div>
+
+    <div id="chat-foto-viewer" onclick="cerrarVisorFoto()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:70; align-items:center; justify-content:center; padding:20px;">
+      <img id="chat-foto-viewer-img" style="max-width:100%; max-height:100%; border-radius:8px;">
+    </div>
+    <!-- LISTA HISTORIAL -->
+    <div class="step" id="step-historial-lista">
+      <button class="back-link" onclick="goStep('home')">← Inicio</button>
+      <h2 style="margin-top:0">Tus pedidos</h2>
+      <div id="historial-lista"></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="gohouse-vps-adapter.js"></script>
+<script>
+const appConfig = { appKind: 'client' };
+const gohouseApp = gohouseCloud.initializeApp(appConfig, 'cliente');
+const dbRef = gohouseApp.database().ref('gohouse-data');
+const auth = gohouseApp.auth();
+
+const PROFILE_KEY = 'gohouse-client-profile';
+let destinoSeleccionado = null;
+let pedidoActualId = null;
+let seguimientoListener = null;
+let redirigiendoAlTerminar = false;
+let chatRef = null;
+let chatListener = null;
+let chatAbierto = false;
+let mensajesNoLeidos = 0;
+let chatSoporteRef = null;
+let chatSoporteListener = null;
+let chatSoporteAbierto = false;
+let mensajesSoporteNoLeidos = 0;
+let alertasActivas = true;
+let ultimoEstadoNotificado = null;
+let intervaloTiempoTranscurrido = null;
+let createdAtActual = null;
+let ultimaOrdenValorCompra = null;
+let ultimaOrdenTarifa = null;
+let perfil = null;
+let pagoEntregaSeleccionado = null;
+let comprobanteEntregaAdjunto = false;
+const PENDING_PROFILE_KEY = 'gohouse-pending-profile';
+const PENDING_EMAIL_KEY = 'gohouse-pending-email';
+
+function goStep(name){
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function detenerSeguimientoEnVivo(){
+  if(seguimientoListener){ dbRef.off('value', seguimientoListener); seguimientoListener = null; }
+  cerrarChatListener();
+  if(intervaloTiempoTranscurrido){ clearInterval(intervaloTiempoTranscurrido); intervaloTiempoTranscurrido = null; }
+}
+
+function init(){
+  try{
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if(raw){
+      perfil = JSON.parse(raw);
+      auth.onAuthStateChanged(user => {
+        if(user){
+          guardarPerfilEnServidor(user.uid, perfil);
+          abrirChatSoporte(perfil.celular);
+        } else {
+          // La sesión del servidor se perdió (ej. el navegador la borró). Como ya tenemos
+          // el perfil guardado localmente, solo hace falta una sesión anónima nueva.
+          auth.signInAnonymously()
+            .then(cred => {
+              guardarPerfilEnServidor(cred.user.uid, perfil);
+              abrirChatSoporte(perfil.celular);
+            })
+            .catch(err => console.error('No se pudo reconectar la sesión:', err));
+        }
+      });
+      mostrarHome();
+      return;
+    }
+  }catch(e){ /* localStorage no disponible, sigue en registro */ }
+  goStep('registro');
+}
+
+function mostrarHome(){
+  if(!perfil.nombre || !perfil.direccion){
+    document.getElementById('comp-nombre').value = perfil.nombre || '';
+    document.getElementById('comp-cedula').value = perfil.cedula || '';
+    document.getElementById('comp-celular').value = perfil.celular || '';
+    document.getElementById('comp-direccion').value = perfil.direccion || '';
+    document.getElementById('comp-ciudad').value = perfil.ciudad || 'Yarumal';
+    goStep('completar');
+    return;
+  }
+  document.getElementById('welcome-nombre').textContent = perfil.nombre;
+  document.getElementById('direccion-registrada-texto').textContent = perfil.direccion || '(sin dirección registrada)';
+  goStep('home');
+  if(perfil.celular) abrirChatSoporte(perfil.celular);
+}
+
+function guardarPerfilCompletado(){
+  const nombre = document.getElementById('comp-nombre').value.trim();
+  const cedula = document.getElementById('comp-cedula').value.trim();
+  const celular = document.getElementById('comp-celular').value.trim();
+  const direccion = document.getElementById('comp-direccion').value.trim();
+  const ciudad = document.getElementById('comp-ciudad').value.trim();
+
+  if(!nombre || !cedula || !celular || !direccion){
+    showToast('Completa todos los campos para continuar.');
+    return;
+  }
+
+  perfil = { ...perfil, nombre, cedula, celular, direccion, ciudad };
+  try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(perfil)); }
+  catch(e){ showToast('No se pudo guardar en este navegador.'); }
+  if(auth.currentUser) guardarPerfilEnServidor(auth.currentUser.uid, perfil);
+
+  document.getElementById('welcome-nombre').textContent = perfil.nombre;
+  document.getElementById('direccion-registrada-texto').textContent = perfil.direccion;
+  goStep('home');
+}
+
+function selectDestino(tipo){
+  destinoSeleccionado = tipo;
+  document.querySelectorAll('[data-destino]').forEach(el => {
+    el.classList.toggle('selected', el.dataset.destino === tipo);
+  });
+  document.getElementById('direccion-registrada-box').style.display = (tipo === 'registrada') ? 'block' : 'none';
+  document.getElementById('otra-direccion-box').style.display = (tipo === 'otra') ? 'block' : 'none';
+}
+
+function enviarRegistro(){
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const cedula = document.getElementById('reg-cedula').value.trim();
+  const celular = document.getElementById('reg-celular').value.trim();
+  const direccion = document.getElementById('reg-direccion').value.trim();
+  const ciudad = document.getElementById('reg-ciudad').value.trim();
+
+  if(!nombre || !cedula || !celular || !direccion){
+    showToast('Completa todos los campos para continuar.');
+    return;
+  }
+
+  const btn = document.querySelector('#step-registro .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = 'Registrando...'; }
+
+  auth.signInAnonymously().then((cred) => {
+    perfil = { nombre, cedula, celular, direccion, ciudad };
+    try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(perfil)); }
+    catch(e){ /* seguimos igual, ya quedó en la sesión del servidor */ }
+    guardarPerfilEnServidor(cred.user.uid, perfil);
+    mostrarHome();
+  }).catch(err => {
+    console.error(err);
+    showToast('No se pudo registrar: ' + err.message);
+  }).finally(() => {
+    if(btn){ btn.disabled = false; btn.textContent = 'Registrarme'; }
+  });
+}
+
+function guardarPerfilEnServidor(uid, perfil){
+  dbRef.child('clientes').child(uid).set({ ...perfil, uid, registradoEn: Date.now() })
+    .catch(e => console.error('No se pudo guardar el perfil en el servidor:', e));
+}
+
+function cerrarSesionDemo(){
+  auth.signOut().catch(() => {});
+  try{
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(PENDING_PROFILE_KEY);
+    localStorage.removeItem(PENDING_EMAIL_KEY);
+  }catch(e){ /* no existía */ }
+  perfil = null;
+  location.reload();
+}
+
+function selectPagoEntrega(tipo){
+  pagoEntregaSeleccionado = tipo;
+  document.querySelectorAll('#step-cobro .pay-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.pago === tipo);
+  });
+  document.getElementById('qr-box-entrega').style.display = (tipo === 'Nequi/Daviplata') ? 'flex' : 'none';
+  document.getElementById('upload-box-entrega').style.display = (tipo === 'Ya pagué') ? 'block' : 'none';
+  updateConfirmarPagoButton();
+}
+
+let comprobanteEntregaDataUrl = null;
+
+function onComprobanteEntrega(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+
+  const box = document.getElementById('upload-box-entrega');
+  box.innerHTML = 'Procesando...';
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const maxAncho = 700;
+      const escala = Math.min(1, maxAncho / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * escala;
+      canvas.height = img.height * escala;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      comprobanteEntregaDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      comprobanteEntregaAdjunto = true;
+
+      box.classList.add('has-file');
+      box.innerHTML = '✓ Comprobante adjuntado: ' + file.name +
+        '<input type="file" id="in-comprobante-entrega" accept="image/*" onchange="onComprobanteEntrega(event)" style="display:none">';
+      updateConfirmarPagoButton();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateConfirmarPagoButton(){
+  let ok = !!pagoEntregaSeleccionado;
+  if(pagoEntregaSeleccionado === 'Ya pagué' && !comprobanteEntregaAdjunto) ok = false;
+  document.getElementById('btn-confirmar-pago').disabled = !ok;
+}
+
+async function confirmarPagoEntrega(){
+  if(!pagoEntregaSeleccionado || !pedidoActualId) return;
+  const btn = document.getElementById('btn-confirmar-pago');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const data = await loadShared();
+  const orden = data.orders.find(o => o.id === pedidoActualId);
+  if(orden){
+    orden.pago = pagoEntregaSeleccionado === 'Ya pagué' ? 'Ya pagó (comprobante adjunto)' : pagoEntregaSeleccionado;
+    if(pagoEntregaSeleccionado === 'Ya pagué' && comprobanteEntregaDataUrl){
+      orden.comprobante = comprobanteEntregaDataUrl;
+    }
+    try{
+      await saveShared(data);
+      showToast('Forma de pago confirmada.');
+    }catch(e){ /* saveShared ya muestra el toast de error */ }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Confirmar forma de pago';
+  mostrarSeguimiento(pedidoActualId);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function todayStr(){ return new Date().toDateString(); }
+function uid(){ return Math.random().toString(36).slice(2, 8); }
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('es-CO', { hour: '2-digit', minute:'2-digit' }); }
+
+function conTiempoLimite(promesa, ms, mensajeTimeout){
+  return Promise.race([
+    promesa,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(mensajeTimeout)), ms))
+  ]);
+}
+
+function normalizarData(val){
+  const data = val || {};
+  if(!Array.isArray(data.orders)) data.orders = [];
+  if(!Array.isArray(data.repartidores)) data.repartidores = [];
+  return data;
+}
+
+async function loadShared(){
+  try{
+    const snap = await conTiempoLimite(dbRef.once('value'), 10000, 'Tiempo de espera agotado leyendo datos.');
+    return normalizarData(snap.val());
+  }catch(e){ console.error('Error leyendo servidor:', e); }
+  return normalizarData(null);
+}
+
+async function saveShared(data){
+  try{
+    await conTiempoLimite(dbRef.set(data), 10000, 'Tiempo de espera agotado guardando el pedido.');
+  }catch(e){
+    showToast('No se pudo enviar: ' + e.message + ' Revisa tu conexión e intenta de nuevo.');
+    console.error(e);
+    throw e;
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+async function confirmarPedido(){
+  const lugar = document.getElementById('in-lugar').value.trim();
+  const descripcion = document.getElementById('in-descripcion').value.trim();
+
+  if(!lugar || !descripcion){ showToast('Vuelve al inicio y completa el lugar y qué necesitas.'); goStep('mandado'); return; }
+  if(!destinoSeleccionado){ showToast('Elige a dónde llevamos lo comprado.'); goStep('mandado'); return; }
+
+  let direccion = '';
+  if(destinoSeleccionado === 'registrada'){
+    direccion = perfil.direccion;
+  } else {
+    direccion = document.getElementById('in-direccion').value.trim();
+  }
+  if(!direccion){ showToast('Falta la dirección de entrega.'); goStep('mandado'); return; }
+
+  const btn = document.getElementById('btn-confirmar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  let tarifaSnapshot;
+  try {
+    if (!window.GoHouseTarifas) throw new Error('TARIFF_NOT_CONFIGURED');
+    tarifaSnapshot = await window.GoHouseTarifas.quote();
+  } catch (error) {
+    btn.disabled = false; btn.textContent = 'Enviar domicilio';
+    showToast(window.GoHouseTarifas?.errorText(error) || 'No se pudieron cargar las tarifas. Actualiza e intenta de nuevo.');
+    return;
+  }
+
+  const data = await loadShared();
+
+  const pedidoTexto = `Ir a ${lugar}: ${descripcion}`;
+
+  const orden = {
+    id: uid(),
+    numero: (data.orders.length + 1),
+    ...tarifaSnapshot,
+    cliente: perfil.nombre,
+    cedula: perfil.cedula,
+    telefono: perfil.celular,
+    clienteUid: auth.currentUser ? auth.currentUser.uid : null,
+    direccion,
+    pedido: pedidoTexto,
+    lugar,
+    descripcion,
+    pago: null,
+    estado: 'nuevo',
+    repartidorId: null,
+    createdAt: Date.now(),
+    deliveredAt: null,
+    day: todayStr()
+  };
+
+  data.orders.unshift(orden);
+
+  try{
+    await saveShared(data);
+    mostrarSeguimiento(orden.id);
+  }catch(e){
+    btn.disabled = false;
+    btn.textContent = 'Enviar domicilio';
+  }
+}
+
+function formatearMinutos(ms){
+  const minutos = Math.floor(ms / 60000);
+  if(minutos < 1) return 'menos de 1 minuto';
+  if(minutos === 1) return '1 minuto';
+  if(minutos < 60) return minutos + ' minutos';
+  const horas = Math.floor(minutos / 60);
+  const minsRestantes = minutos % 60;
+  return horas + (horas === 1 ? ' hora' : ' horas') + (minsRestantes > 0 ? ' ' + minsRestantes + ' min' : '');
+}
+
+function actualizarTiempoTranscurrido(){
+  const el = document.getElementById('tiempo-transcurrido');
+  if(!el || !createdAtActual) return;
+  const transcurrido = Date.now() - createdAtActual;
+  el.textContent = 'Llevas ' + formatearMinutos(transcurrido) + ' esperando';
+}
+
+function mostrarTiempoFinal(createdAt, deliveredAt){
+  const el = document.getElementById('tiempo-transcurrido');
+  if(!el || !deliveredAt) return;
+  el.textContent = 'Te llegó en ' + formatearMinutos(deliveredAt - createdAt);
+}
+
+function estadoInfo(estado){
+  const pasos = [
+    { key: 'nuevo', titulo: 'Pedido recibido', sub: 'GoHouse lo tiene registrado' },
+    { key: 'aceptado', titulo: 'Domiciliario asignado', sub: 'Va camino al lugar' },
+    { key: 'en_destino', titulo: 'Llegó al lugar', sub: 'Está haciendo tu vuelta/compra' },
+    { key: 'camino', titulo: 'En camino a tu dirección', sub: 'Ya hizo la compra/vuelta' },
+    { key: 'entregado', titulo: 'Entregado', sub: '¡Listo!' }
+  ];
+  const orden = ['nuevo','aceptado','en_destino','camino','entregado'];
+  const idx = orden.indexOf(estado);
+  return { pasos, idx };
+}
+
+function mostrarSeguimiento(orderId){
+  pedidoActualId = orderId;
+  redirigiendoAlTerminar = false;
+  ultimoEstadoNotificado = null;
+  goStep('seguimiento');
+  detenerSeguimientoEnVivo();
+  seguimientoListener = snapshot => {
+    const val = normalizarData(snapshot.val());
+    renderSeguimientoFromData(val);
+  };
+  dbRef.on('value', seguimientoListener, error => {
+    console.error('Error de conexión con el seguimiento:', error);
+    document.getElementById('tracker-container').innerHTML =
+      '<div class="empty">No se pudo conectar para ver tu pedido. Revisa tu internet y vuelve a intentar, o recarga la página.</div>';
+  });
+  abrirChatParaPedido(orderId);
+}
+
+function renderSeguimientoFromData(data){
+  const orden = data.orders.find(o => o.id === pedidoActualId);
+  const cont = document.getElementById('tracker-container');
+  if(!orden){
+    cont.innerHTML = '<div class="empty">No encontramos este pedido.</div>';
+    return;
+  }
+
+  if(orden.estado === 'cancelado'){
+    cont.innerHTML = `
+      <div class="tracker">
+        <div class="tracker-number">DOMICILIO #${orden.numero}</div>
+        <div class="empty" style="border-color:#ff6b6b; color:#ff6b6b; text-align:center; padding:24px 16px;">
+          ✕ Este pedido fue cancelado
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const rep = data.repartidores.find(r => r.id === orden.repartidorId);
+  const { pasos, idx } = estadoInfo(orden.estado);
+
+  let stepsHtml = pasos.map((p, i) => {
+    let cls = '';
+    if(i < idx) cls = 'done';
+    else if(i === idx) cls = 'current';
+    let sub = p.sub;
+    if(p.key === 'aceptado' && rep && i <= idx) sub = 'Domiciliario: ' + rep.nombre;
+    const icon = i < idx ? '✓' : (i + 1);
+    const showLine = i < pasos.length - 1;
+    return `
+      <div class="track-step ${cls}">
+        <div class="track-step-marker">
+          <div class="track-dot">${icon}</div>
+          ${showLine ? '<div class="track-line"></div>' : ''}
+        </div>
+        <div class="track-step-body">
+          <div class="track-step-title">${p.titulo}</div>
+          <div class="track-step-sub">${sub}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  let valorCompraHtml = '';
+  if(orden.valorCompra || orden.tarifa){
+    const total = (orden.valorCompra || 0) + (orden.tarifa || 0);
+    valorCompraHtml = `<div style="margin-top:14px; background:var(--surface-2); padding:12px; border-radius:8px;">
+      ${orden.valorCompra ? `<div class="summary-line" style="border:none; padding:4px 0;"><span>🛒 Lo que compraron</span><span style="color:var(--orange); font-weight:600;">$${orden.valorCompra.toLocaleString('es-CO')}</span></div>` : ''}
+      ${orden.tarifa ? `<div class="summary-line" style="border:none; padding:4px 0;"><span>🛵 Valor del domicilio</span><span style="color:var(--orange); font-weight:600;">$${orden.tarifa.toLocaleString('es-CO')}</span></div>` : ''}
+      ${(orden.valorCompra && orden.tarifa) ? `<div class="summary-line" style="border-top:1px dashed var(--line); margin-top:6px; padding-top:10px;"><span><b>Total a pagar</b></span><span style="color:var(--green); font-weight:700;">$${total.toLocaleString('es-CO')}</span></div>` : ''}
+    </div>`;
+  }
+
+  let cobroHtml = '';
+  if(orden.pago){
+    cobroHtml = `<div class="summary-line" style="border:none; margin-top:14px; background:var(--green-dim); padding:12px; border-radius:8px; color:var(--green);">
+      <span>Forma de pago</span><span>${escapeHtml(orden.pago)}</span>
+    </div>`;
+  } else if(orden.estado === 'camino' || orden.estado === 'entregado'){
+    cobroHtml = `<button class="btn btn-primary" style="margin-top:14px" onclick="abrirCobro()">💳 El domiciliario llegó — Confirmar cómo pagar</button>`;
+  }
+
+  const botonAlertasHtml = '';
+
+  const cancelarHtml = (orden.estado !== 'entregado')
+    ? `<button class="btn btn-ghost" style="margin-top:10px; width:100%; color:#ff6b6b; border-color:#ff6b6b;" onclick="cancelarPedidoCliente()">✕ Cancelar pedido</button>`
+    : '';
+
+  const whatsappTexto = `Mi domicilio de GoHouse #${orden.numero} va: ${pasos[idx] ? pasos[idx].titulo : orden.estado}. Dirección: ${orden.direccion}`;
+  const whatsappHtml = `<a class="btn btn-ghost" style="margin-top:10px; width:100%; display:block; text-align:center; text-decoration:none;" href="https://wa.me/?text=${encodeURIComponent(whatsappTexto)}" target="_blank">📲 Compartir por WhatsApp</a>`;
+
+  cont.innerHTML = `
+    <div class="tracker">
+      <div class="tracker-number">DOMICILIO #${orden.numero}</div>
+      <div class="tracker-title">${escapeHtml(orden.direccion)}</div>
+      <div id="tiempo-transcurrido" class="tiempo-transcurrido"></div>
+      <div class="track-steps">${stepsHtml}</div>
+      ${valorCompraHtml}
+      ${cobroHtml}
+      ${botonAlertasHtml}
+      ${cancelarHtml}
+      ${whatsappHtml}
+    </div>
+  `;
+
+  createdAtActual = orden.createdAt;
+  ultimaOrdenValorCompra = orden.valorCompra || null;
+  ultimaOrdenTarifa = orden.tarifa || null;
+
+  const chatBtn = document.getElementById('chat-btn');
+  const yaAsignado = orden.estado !== 'nuevo' && orden.estado !== 'cancelado';
+  chatBtn.style.display = yaAsignado ? 'flex' : 'none';
+  if(!yaAsignado){
+    document.getElementById('chat-panel').style.display = 'none';
+    chatAbierto = false;
+  }
+
+  if(orden.estado === 'entregado'){
+    mostrarTiempoFinal(orden.createdAt, orden.deliveredAt);
+  } else {
+    actualizarTiempoTranscurrido();
+    if(!intervaloTiempoTranscurrido){
+      intervaloTiempoTranscurrido = setInterval(actualizarTiempoTranscurrido, 30000);
+    }
+  }
+
+  if(ultimoEstadoNotificado !== null && ultimoEstadoNotificado !== orden.estado){
+    dispararAlertaCliente(orden.estado);
+  }
+  ultimoEstadoNotificado = orden.estado;
+
+  if(orden.estado === 'entregado' && !orden.calificacion && !redirigiendoAlTerminar){
+    redirigiendoAlTerminar = true;
+    cont.innerHTML += `
+      <div class="empty" style="border-color:var(--green); color:var(--green); text-align:center;">
+        <div style="margin-bottom:10px;">✓ Domicilio completado. ¿Cómo estuvo el servicio?</div>
+        <div style="font-size:1.8rem; letter-spacing:0.1em;">
+          ${[1,2,3,4,5].map(n => `<span style="cursor:pointer;" onclick="calificarPedido('${orden.id}', ${n})">⭐</span>`).join('')}
+        </div>
+        <button class="btn btn-ghost" style="margin-top:12px;" onclick="detenerSeguimientoEnVivo(); goStep('home')">Omitir</button>
+      </div>
+    `;
+  } else if(orden.estado === 'entregado' && orden.calificacion && !redirigiendoAlTerminar){
+    redirigiendoAlTerminar = true;
+    cont.innerHTML += `<div class="empty" style="border-color:var(--green); color:var(--green);">✓ ¡Gracias por calificar! Volviendo al inicio…</div>`;
+    setTimeout(() => { detenerSeguimientoEnVivo(); goStep('home'); }, 2000);
+  }
+}
+
+async function cancelarPedidoCliente(){
+  if(!confirm('¿Seguro que quieres cancelar este pedido?')) return;
+
+  const data = await loadShared();
+  const orden = data.orders.find(o => o.id === pedidoActualId);
+  if(!orden) return;
+
+  if(orden.estado === 'entregado'){
+    showToast('Este pedido ya fue entregado, no se puede cancelar.');
+    return;
+  }
+
+  const estadoAntes = orden.estado;
+  orden.estado = 'cancelado';
+  orden.canceladoAt = Date.now();
+  orden.canceladoEnEstado = estadoAntes;
+
+  if(orden.repartidorId){
+    const rep = data.repartidores.find(r => r.id === orden.repartidorId);
+    if(rep) rep.estado = 'disponible';
+  }
+
+  try{
+    await saveShared(data);
+  }catch(e){ return; }
+
+  if(estadoAntes === 'en_destino' || estadoAntes === 'camino'){
+    showToast('Pedido cancelado. Como el domiciliario ya había avanzado, es posible que igual debas pagar el domicilio — GoHouse te contactará.');
+  } else {
+    showToast('Pedido cancelado.');
+  }
+  setTimeout(() => { detenerSeguimientoEnVivo(); goStep('home'); }, 2500);
+}
+
+async function calificarPedido(orderId, estrellas){
+  const data = await loadShared();
+  const orden = data.orders.find(o => o.id === orderId);
+  if(orden){
+    orden.calificacion = estrellas;
+    await saveShared(data);
+  }
+  showToast('¡Gracias por tu calificación!');
+  setTimeout(() => { detenerSeguimientoEnVivo(); goStep('home'); }, 1000);
+}
+
+function abrirCobro(){
+  pagoEntregaSeleccionado = null;
+  comprobanteEntregaAdjunto = false;
+  comprobanteEntregaDataUrl = null;
+
+  const total = (ultimaOrdenValorCompra || 0) + (ultimaOrdenTarifa || 0);
+  document.getElementById('resumen-cobro').innerHTML = `
+    <div style="background:var(--surface-2); padding:12px; border-radius:8px; margin-bottom:14px;">
+      ${ultimaOrdenValorCompra ? `<div class="summary-line" style="border:none; padding:4px 0;"><span>🛒 Lo que compraron</span><span>$${ultimaOrdenValorCompra.toLocaleString('es-CO')}</span></div>` : ''}
+      ${ultimaOrdenTarifa ? `<div class="summary-line" style="border:none; padding:4px 0;"><span>🛵 Valor del domicilio</span><span>$${ultimaOrdenTarifa.toLocaleString('es-CO')}</span></div>` : ''}
+      <div class="summary-line" style="border-top:1px dashed var(--line); margin-top:6px; padding-top:10px;"><span><b>Total a pagar</b></span><span style="color:var(--green); font-weight:700;">$${total.toLocaleString('es-CO')}</span></div>
+    </div>
+  `;
+
+  document.querySelectorAll('#step-cobro .pay-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('qr-box-entrega').style.display = 'none';
+  document.getElementById('upload-box-entrega').style.display = 'none';
+  document.getElementById('upload-box-entrega').classList.remove('has-file');
+  document.getElementById('upload-box-entrega').innerHTML = '📎 Toca para adjuntar el comprobante<input type="file" id="in-comprobante-entrega" accept="image/*" onchange="onComprobanteEntrega(event)">';
+  document.getElementById('btn-confirmar-pago').disabled = true;
+  goStep('cobro');
+}
+
+async function cargarMiHistorial(){
+  const data = await loadShared();
+  const mios = data.orders.filter(o => o.telefono === perfil.celular).sort((a,b) => b.createdAt - a.createdAt);
+
+  const listaEl = document.getElementById('historial-lista');
+  if(mios.length === 0){
+    listaEl.innerHTML = '<div class="empty">Todavía no tienes pedidos.</div>';
+  } else {
+    listaEl.innerHTML = mios.map(o => {
+      const badge = o.estado === 'entregado'
+        ? '<span class="hist-badge entregado">Entregado</span>'
+        : '<span class="hist-badge curso">En curso</span>';
+      const fecha = new Date(o.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+      return `
+        <div class="hist-item">
+          <div onclick="mostrarSeguimiento('${o.id}')" style="cursor:pointer;">
+            <div class="hist-top"><span class="hist-numero">#${o.numero} · ${fecha} · ${fmtTime(o.createdAt)}</span>${badge}</div>
+            <div class="hist-desc">${escapeHtml(o.pedido)}</div>
+          </div>
+          <button class="btn btn-ghost" style="margin-top:8px; padding:8px; font-size:0.78rem;" onclick="event.stopPropagation(); iniciarRepetirPedido('${o.id}')">🔁 Repetir este pedido</button>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+async function iniciarRepetirPedido(orderId){
+  const data = await loadShared();
+  const o = data.orders.find(x => x.id === orderId);
+  if(!o) return;
+
+  document.getElementById('in-lugar').value = o.lugar || '';
+  document.getElementById('in-descripcion').value = o.descripcion || '';
+
+  if(o.direccion === perfil.direccion){
+    selectDestino('registrada');
+  } else {
+    selectDestino('otra');
+    document.getElementById('in-direccion').value = o.direccion || '';
+  }
+
+  goStep('mandado');
+  showToast('Revisa los datos y confirma para enviar de nuevo.');
+}
+
+init();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(e => console.log('SW no registrado:', e));
+  });
+}
+
+// ---- CHAT ----
+function abrirChatParaPedido(orderId){
+  cerrarChatListener();
+  chatRef = dbRef.parent.child('chats').child(orderId);
+  chatListener = snapshot => {
+    const mensajes = [];
+    snapshot.forEach(child => { mensajes.push(child.val()); });
+    renderMensajesChat(mensajes);
+  };
+  chatRef.on('value', chatListener);
+}
+
+function cerrarChatListener(){
+  if(chatRef && chatListener){ chatRef.off('value', chatListener); }
+  chatRef = null;
+  chatListener = null;
+  chatAbierto = false;
+  mensajesNoLeidos = 0;
+  document.getElementById('chat-btn').style.display = 'none';
+  document.getElementById('chat-panel').style.display = 'none';
+}
+
+function toggleChat(){
+  chatAbierto = !chatAbierto;
+  document.getElementById('chat-panel').style.display = chatAbierto ? 'flex' : 'none';
+  if(chatAbierto){
+    mensajesNoLeidos = 0;
+    document.getElementById('chat-badge').style.display = 'none';
+    const cont = document.getElementById('chat-mensajes');
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function renderMensajesChat(mensajes){
+  const cont = document.getElementById('chat-mensajes');
+  const estabaAbajo = cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 20;
+
+  if(mensajes.length === 0){
+    cont.innerHTML = '<div class="empty" style="text-align:center; padding:20px 10px;">Escríbele al domiciliario si necesitas avisarle algo.</div>';
+  } else {
+    cont.innerHTML = mensajes.map(m => `
+      <div class="chat-msg ${m.de === 'cliente' ? 'propio' : 'ajeno'}">
+        ${m.tipo === 'imagen'
+          ? `<img src="${m.imagen}" onclick="verFotoCompleta('${m.imagen.replace(/'/g, "\\'")}')">`
+          : escapeHtml(m.texto)}
+        <span class="chat-hora">${fmtTime(m.hora)}</span>
+      </div>
+    `).join('');
+  }
+
+  const nuevosDeOtro = mensajes.filter(m => m.de !== 'cliente').length;
+  if(!chatAbierto && nuevosDeOtro > mensajesNoLeidos){
+    mensajesNoLeidos = nuevosDeOtro;
+    const badge = document.getElementById('chat-badge');
+    badge.textContent = mensajesNoLeidos;
+    badge.style.display = 'flex';
+    reproducirBeep();
+    if(navigator.vibrate) navigator.vibrate(150);
+    const ultimo = mensajes[mensajes.length - 1];
+    mostrarNotifChat('🛵 Domiciliario: ' + (ultimo.tipo === 'imagen' ? '📷 Foto' : ultimo.texto).slice(0, 60), () => toggleChat());
+  }
+
+  if(chatAbierto || estabaAbajo){
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function enviarMensajeChat(){
+  if(!chatRef) return;
+  const input = document.getElementById('chat-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  chatRef.push({ de: 'cliente', texto, hora: Date.now() }).catch(err => { console.error('Error enviando chat:', err); showToast('No se pudo enviar: ' + err.message); });
+  input.value = '';
+}
+
+function enviarFotoChat(event){
+  if(!chatRef) return;
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const maxAncho = 700;
+      const escala = Math.min(1, maxAncho / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * escala;
+      canvas.height = img.height * escala;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      chatRef.push({ de: 'cliente', tipo: 'imagen', imagen: dataUrl, hora: Date.now() }).catch(err => { console.error('Error enviando foto:', err); showToast('No se pudo enviar la foto: ' + err.message); });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function verFotoCompleta(src){
+  document.getElementById('chat-foto-viewer-img').src = src;
+  document.getElementById('chat-foto-viewer').style.display = 'flex';
+}
+
+function cerrarVisorFoto(){
+  document.getElementById('chat-foto-viewer').style.display = 'none';
+}
+
+// ---- ALERTAS DE CAMBIO DE ESTADO ----
+function activarAlertasCliente(){
+  alertasActivas = true;
+  try{ new (window.AudioContext || window.webkitAudioContext)().resume(); }catch(e){}
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(() => GoHouseVPS.subscribePush()).catch(() => {});
+  }
+  reproducirBeep();
+  if(pedidoActualId) mostrarSeguimiento(pedidoActualId);
+}
+
+let notifChatAccion = null;
+
+function mostrarNotifChat(texto, accionAlAbrir){
+  document.getElementById('chat-notif-texto').textContent = texto;
+  notifChatAccion = accionAlAbrir;
+  document.getElementById('chat-notif-banner').style.display = 'block';
+}
+
+function cerrarNotifChat(){
+  document.getElementById('chat-notif-banner').style.display = 'none';
+  notifChatAccion = null;
+}
+
+function abrirDesdeNotifChat(){
+  if(notifChatAccion) notifChatAccion();
+  cerrarNotifChat();
+}
+
+function reproducirBeep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  }catch(e){ console.error('No se pudo reproducir el sonido:', e); }
+}
+
+function dispararAlertaCliente(nuevoEstado){
+  if(!alertasActivas) return;
+  reproducirBeep();
+  if(navigator.vibrate) navigator.vibrate(200);
+  const mensajes = {
+    aceptado: 'Un domiciliario ya va en camino a hacer tu vuelta.',
+    en_destino: 'El domiciliario llegó al lugar de tu mandado.',
+    camino: 'Tu pedido va en camino a tu dirección.',
+    entregado: '¡Tu pedido fue entregado!'
+  };
+  if('Notification' in window && Notification.permission === 'granted'){
+    try{
+      const b = window.GoHouseBrand?.config || {};
+      new Notification(`${b.brandName || 'Domicilios'} - Actualización de tu pedido`, {
+        body: mensajes[nuevoEstado] || 'Tu pedido cambió de estado.',
+        ...(b.appIconUrl ? { icon:b.appIconUrl } : {})
+      });
+    }catch(e){ /* algunos navegadores requieren service worker, ignoramos si falla */ }
+  }
+}
+
+// ---- CHAT DE SOPORTE CON GOHOUSE ----
+function abrirChatSoporte(celular){
+  if(!celular) return;
+  const key = celular.replace(/[.#$/\[\]\s]/g, '');
+  if(chatSoporteRef && chatSoporteListener){ chatSoporteRef.off('value', chatSoporteListener); }
+  document.getElementById('chat-soporte-btn').style.display = 'flex';
+  chatSoporteRef = dbRef.parent.child('chatsClientes').child(key);
+  chatSoporteListener = snapshot => {
+    const mensajes = [];
+    snapshot.forEach(child => { mensajes.push(child.val()); });
+    renderMensajesChatSoporte(mensajes);
+  };
+  chatSoporteRef.on('value', chatSoporteListener);
+}
+
+function toggleChatSoporte(){
+  chatSoporteAbierto = !chatSoporteAbierto;
+  document.getElementById('chat-soporte-panel').style.display = chatSoporteAbierto ? 'flex' : 'none';
+  if(chatSoporteAbierto){
+    mensajesSoporteNoLeidos = 0;
+    document.getElementById('chat-soporte-badge').style.display = 'none';
+    const cont = document.getElementById('chat-soporte-mensajes');
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function renderMensajesChatSoporte(mensajes){
+  const cont = document.getElementById('chat-soporte-mensajes');
+  const estabaAbajo = cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 20;
+
+  if(mensajes.length === 0){
+    cont.innerHTML = '<div class="empty" style="text-align:center; padding:20px 10px;">¿Alguna pregunta sobre tu pedido o el servicio? Escríbenos.</div>';
+  } else {
+    cont.innerHTML = mensajes.map(m => `
+      <div class="chat-msg ${m.de === 'cliente' ? 'propio' : 'ajeno'}">
+        ${escapeHtml(m.texto)}
+        <span class="chat-hora">${fmtTime(m.hora)}</span>
+      </div>
+    `).join('');
+  }
+
+  const nuevosDeOtro = mensajes.filter(m => m.de !== 'cliente').length;
+  if(!chatSoporteAbierto && nuevosDeOtro > mensajesSoporteNoLeidos){
+    mensajesSoporteNoLeidos = nuevosDeOtro;
+    const badge = document.getElementById('chat-soporte-badge');
+    badge.textContent = mensajesSoporteNoLeidos;
+    badge.style.display = 'flex';
+    reproducirBeep();
+    if(navigator.vibrate) navigator.vibrate(150);
+    const ultimo = mensajes[mensajes.length - 1];
+    mostrarNotifChat('🏠 GoHouse: ' + ultimo.texto.slice(0, 60), () => toggleChatSoporte());
+  }
+
+  if(chatSoporteAbierto || estabaAbajo){
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function enviarMensajeChatSoporte(){
+  if(!chatSoporteRef) return;
+  const input = document.getElementById('chat-soporte-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  chatSoporteRef.push({ de: 'cliente', texto, hora: Date.now() }).catch(err => { console.error('Error enviando chat de soporte:', err); showToast('No se pudo enviar: ' + err.message); });
+  input.value = '';
+}
+
+document.addEventListener('click', function primerToqueDesbloqueaAudio(){
+  try{ new (window.AudioContext || window.webkitAudioContext)().resume(); }catch(e){}
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(() => GoHouseVPS.subscribePush()).catch(() => {});
+  }
+  document.removeEventListener('click', primerToqueDesbloqueaAudio);
+}, { once: true });
+</script>
+</body>
+</html>

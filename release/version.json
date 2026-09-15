@@ -1,14 +1,50 @@
 {
-  "version": "2026.09.12-white-label.26",
-  "published_at": "2026-09-12T20:23:00Z",
+  "version": "2026.09.15-white-label.27",
+  "published_at": "2026-09-15T20:47:46.205780+00:00",
   "status": "release",
   "files": [
     {
-      "path": "web/gohouse-fleet-driver.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/gohouse-vps-recovery/release/payload/fleet-3/web/gohouse-fleet-driver.js",
-      "sha256": "2b27055d87ba89d3e13fb347f9791808f4a1be80b89bee5b17f5aa7689f49d6c"
+      "path": "web/gohouse-panel.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/web/gohouse-panel.html",
+      "sha256": "7b9cd7b88600d6fbbfd3d3d4a41b030f56d51ab535c499697f64d99feab3a941"
+    },
+    {
+      "path": "web/gohouse-cliente.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/web/gohouse-cliente.html",
+      "sha256": "a2cb6dfc626c880836eca4a53c78f0842dc72430e02773735799c8fe256e8793"
+    },
+    {
+      "path": "web/gohouse-domiciliarios.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/web/gohouse-domiciliarios.html",
+      "sha256": "6cc866d4f8af131aa4756475e6cdcfc2081da7a4202f719ca61a3cdfe52ccd11"
+    },
+    {
+      "path": "web/gohouse-branding.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/web/gohouse-branding.js",
+      "sha256": "02f3658a0b814e22e25e6ffcd40b42481337f56b9ecefa548870553ea7e91337"
+    },
+    {
+      "path": "web/gohouse-tarifas.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/web/gohouse-tarifas.js",
+      "sha256": "53913e12ecd554368477eaaaaf4fb3a06e92bd6841d6bdb909c05869094ffc4b"
+    },
+    {
+      "path": "server/src/tarifas.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/server/src/tarifas.js",
+      "sha256": "34e7bc374f9f0844c94a0df8b7aa12a8761bbf9959633f0fc85e1c2e5ddb2d10"
+    },
+    {
+      "path": "server/src/server.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/server/src/server.js",
+      "sha256": "8dc3660847156d5c701290aed049631452f21745a36ca86503cdcb1f2df6d913"
     }
   ],
   "delete": [],
-  "migrations": []
+  "migrations": [
+    {
+      "path": "migrations/005_tariff_contract.sql",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a8a284e50bbd794a7d415232204499fd6033b0ab/release/payload/tarifas-2/migrations/005_tariff_contract.sql",
+      "sha256": "d3377b9f11b9092cde4dc011c38f2fca3f8b3254f44bf34cf2df36a30d73cfa2"
+    }
+  ]
 }

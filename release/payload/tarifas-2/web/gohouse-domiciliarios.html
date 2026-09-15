@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script defer src="gohouse-branding.js?v=20260915.2"></script>
+<title>Domiciliarios</title>
+<link rel="manifest" href="/api/manifest.webmanifest?app=driver">
+<meta name="theme-color" content="#0F1B2B">
+<link rel="icon" href="brand-placeholder.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Domicilios">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0F1B2B;
+    --surface: #16273D;
+    --surface-2: #1D3350;
+    --line: #2A415F;
+    --teal: #34C6C0;
+    --teal-dim: #1B4A48;
+    --orange: #FF8C42;
+    --orange-dim: #5A3B24;
+    --green: #4FD98D;
+    --green-dim: #23472F;
+    --slate: #7E93AC;
+    --red: #FF6B6B;
+    --text: #EAF1F7;
+    --text-dim: #93A7BE;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .app{
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header{
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .logo-row{ display:flex; align-items:center; gap: 10px; }
+
+  .logo-mark{
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px var(--line);
+  }
+  .logo-mark img{ width: 100%; height: 100%; object-fit: cover; display:block; }
+
+  h1{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .tag{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .logo-note{ font-size: 0.65rem; color: var(--text-dim); margin-top: 8px; font-style: italic; }
+
+  main{ flex: 1; padding: 18px; padding-bottom: 100px; }
+
+  .who-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .who-card h2{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    margin: 0 0 6px;
+  }
+  .who-card p{ color: var(--text-dim); font-size: 0.85rem; margin: 0 0 18px; }
+
+  .who-list{ display:flex; flex-direction: column; gap: 10px; }
+
+  .who-btn{
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+  }
+  .who-btn:active{ transform: scale(0.98); }
+  .who-btn .estado-mini{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .driver-bar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+
+  .driver-name{ font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.05rem; }
+  .driver-sub{ font-size: 0.72rem; color: var(--text-dim); }
+  .switch-off{ background: none; border: none; color: var(--text-dim); font-size: 0.72rem; text-decoration: underline; cursor: pointer; padding: 0; margin-top: 4px; }
+
+  .toggle{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    cursor: pointer;
+  }
+  .toggle-track{
+    width: 42px; height: 24px;
+    border-radius: 999px;
+    background: var(--slate);
+    position: relative;
+    transition: background 0.2s ease;
+  }
+  .toggle-track.on{ background: var(--green); }
+  .toggle-knob{
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: left 0.2s ease;
+  }
+  .toggle-track.on .toggle-knob{ left: 21px; }
+  .toggle-label{ font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; text-transform: uppercase; color: var(--text-dim); }
+
+  section h2{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    display:flex; align-items:center; gap: 8px;
+  }
+  section h2 .count{ font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-dim); font-weight: 400; }
+
+  .route-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .route-map{
+    display:flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .pin{
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pin-origin{ background: var(--orange); }
+  .pin-dest{ background: var(--teal); }
+  .route-line{
+    flex: 1;
+    height: 0;
+    border-top: 2px dashed var(--line);
+  }
+  .route-labels{ display:flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-dim); margin-top: -6px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+
+  .route-card .cliente{ font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 2px; }
+  .route-card .direccion{ font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px; }
+  .route-card .pedido-text{
+    font-size: 0.85rem;
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+  }
+
+  .badge-row{ display:flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .badge{ font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge-pago{ background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--line); }
+  .badge-time{ background: var(--teal-dim); color: var(--teal); }
+
+  .btn{
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 16px;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-accept{ background: var(--teal); color: #06201E; }
+  .btn-camino{ background: var(--orange); color: #2A1A08; }
+  .btn-entregado{ background: var(--green); color: #0E2417; }
+
+  .empty{
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    padding: 26px 16px;
+    text-align: center;
+  }
+
+  .off-banner{
+    background: var(--surface-2);
+    border: 1px dashed var(--slate);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  .active-tag{
+    display:inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    color: var(--orange);
+    background: var(--orange-dim);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .route-card.is-new{
+    border-color: var(--teal);
+    box-shadow: 0 0 0 1px var(--teal), 0 8px 24px rgba(52,198,192,0.25);
+    animation: pulseNew 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseNew{
+    0%, 100% { box-shadow: 0 0 0 1px var(--teal), 0 8px 24px rgba(52,198,192,0.25); }
+    50% { box-shadow: 0 0 0 3px var(--teal), 0 8px 30px rgba(52,198,192,0.4); }
+  }
+  .new-order-tag{
+    display:inline-flex;
+    align-items:center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: var(--teal-dim);
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .new-order-tag .dot-blink{
+    width: 6px; height: 6px; border-radius: 50%; background: var(--teal);
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .success-flash{
+    background: var(--green-dim);
+    border: 1px solid var(--green);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    color: var(--green);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    animation: fadeSlide 0.3s ease;
+  }
+  @keyframes fadeSlide{ from{ opacity:0; transform: translateY(-6px);} to{ opacity:1; transform: translateY(0);} }
+
+  .toast{
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+    padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease; z-index: 50; max-width: 90%; text-align:center;
+  }
+  .toast.show{ opacity: 1; }
+  .loading-note{ color: var(--text-dim); font-size: 0.8rem; padding: 30px 20px; text-align: center; }
+  .chat-fab{
+    position: fixed; bottom: 20px; right: 20px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: var(--orange); border: none; font-size: 1.4rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3); z-index: 60; cursor: pointer;
+  }
+  .chat-badge{
+    position: absolute; top: -2px; right: -2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #ff4444; color: #fff; font-size: 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .chat-panel{
+    position: fixed; bottom: 20px; right: 20px; left: 20px; max-width: 380px; margin: 0 auto;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 61;
+    display: flex; flex-direction: column; height: 60vh; max-height: 460px;
+  }
+  .chat-header{
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 0.9rem;
+  }
+  .chat-close{ background: none; border: none; color: var(--text-dim); font-size: 1rem; cursor: pointer; }
+  .chat-mensajes{ flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-msg{ max-width: 78%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.35; }
+  .chat-msg.propio{ align-self: flex-end; background: var(--orange); color: #1a1204; border-bottom-right-radius: 4px; }
+  .chat-msg.ajeno{ align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
+  .chat-msg .chat-hora{ display: block; font-size: 0.6rem; opacity: 0.7; margin-top: 3px; }
+  .chat-input-row{ display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+  .chat-input-row input[type="text"]{ flex: 1; margin: 0; }
+  .chat-input-row button{
+    background: var(--orange); border: none; color: #1a1204; width: 40px; border-radius: 8px; font-size: 1rem; cursor: pointer; flex-shrink:0;
+  }
+  .chat-msg img{ max-width: 100%; border-radius: 8px; display: block; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo-row">
+      <div class="logo-mark"><img src="brand-placeholder.svg" alt="Logo GO! House Mensajería"></div>
+      <div><h1>¡GO! HOUSE</h1><span class="tag">App de domiciliarios · Mensajería</span></div>
+    </div>
+  </header>
+
+  <main id="main" style="display:none;"></main>
+
+  <!-- CHAT CON GOHOUSE (operaciones, no ligado a un pedido) -->
+  <button id="chat-ops-btn" class="chat-fab" style="display:none; left:20px; right:auto; background:var(--mango);" onclick="toggleChatOps()">
+    🏠<span id="chat-ops-badge" class="chat-badge" style="display:none;"></span>
+  </button>
+  <div id="chat-ops-panel" class="chat-panel" style="display:none;">
+    <div class="chat-header">
+      <span>Chat con GoHouse</span>
+      <button class="chat-close" onclick="toggleChatOps()">✕</button>
+    </div>
+    <div id="chat-ops-mensajes" class="chat-mensajes"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-ops-input" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensajeChatOps()">
+      <button onclick="enviarMensajeChatOps()">➤</button>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIÓN DE CHAT PERSISTENTE (se queda hasta que la cierres) -->
+  <div id="chat-notif-banner" style="display:none; position:fixed; top:14px; left:14px; right:14px; z-index:80; background:var(--surface-2); border:1px solid var(--mango); border-radius:12px; padding:12px 14px; box-shadow:0 6px 24px rgba(0,0,0,0.5);">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+      <div id="chat-notif-texto" style="font-size:0.85rem; cursor:pointer; flex:1;" onclick="abrirDesdeNotifChat()"></div>
+      <button onclick="cerrarNotifChat()" style="background:none; border:none; color:var(--text-dim); font-size:1rem; cursor:pointer; flex-shrink:0;">✕</button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <button id="chat-btn" class="chat-fab" style="display:none;" onclick="toggleChat()">
+    💬<span id="chat-badge" class="chat-badge" style="display:none;"></span>
+  </button>
+  <div id="chat-panel" class="chat-panel" style="display:none;">
+    <div class="chat-header">
+      <span>Chat con el cliente</span>
+      <button class="chat-close" onclick="toggleChat()">✕</button>
+    </div>
+    <div id="chat-mensajes" class="chat-mensajes"></div>
+    <div class="chat-input-row">
+      <button onclick="document.getElementById('chat-camara-input').click()">📷</button>
+      <input type="file" id="chat-camara-input" accept="image/*" capture="environment" style="display:none;" onchange="enviarFotoChat(event)">
+      <button onclick="document.getElementById('chat-foto-input').click()">📎</button>
+      <input type="file" id="chat-foto-input" accept="image/*" style="display:none;" onchange="enviarFotoChat(event)">
+      <input type="text" id="chat-input" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensajeChat()">
+      <button onclick="enviarMensajeChat()">➤</button>
+    </div>
+  </div>
+
+  <div id="chat-foto-viewer" onclick="cerrarVisorFoto()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:70; align-items:center; justify-content:center; padding:20px;">
+    <img id="chat-foto-viewer-img" style="max-width:100%; max-height:100%; border-radius:8px;">
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="gohouse-vps-adapter.js"></script>
+<script>
+const appConfig = { appKind: 'domiciliario' };
+const gohouseApp = gohouseCloud.initializeApp(appConfig, 'domiciliarios');
+const dbRef = gohouseApp.database().ref('gohouse-data');
+const auth = gohouseApp.auth();
+
+let data = { orders: [], repartidores: [] };
+let miId = null;
+let justDelivered = null;
+let vistaActual = 'pedidos';
+let filtroServicios = 'hoy';
+let alertasActivas = true;
+let idsDisponiblesVistos = new Set();
+let ultimoPedidoActivoId = null;
+let estadoMioAnterior = null;
+
+function todayStr(){ return new Date().toDateString(); }
+
+function normalizarData(val){
+  const d = val || {};
+  if(!Array.isArray(d.orders)) d.orders = [];
+  if(!Array.isArray(d.repartidores)) d.repartidores = [];
+  if(!d.config || typeof d.config !== 'object'){
+    d.config = { porcentajeCasa: 17.14, valorSugerido: 3500 };
+  } else {
+    if(typeof d.config.porcentajeCasa !== 'number') d.config.porcentajeCasa = 17.14;
+    if(typeof d.config.valorSugerido !== 'number') d.config.valorSugerido = 3500;
+  }
+  return d;
+}
+
+function iniciarEscuchaEnVivo(){
+  dbRef.on('value', snapshot => {
+    const huboValorOriginal = !!snapshot.val();
+    data = normalizarData(snapshot.val());
+    if(!huboValorOriginal){
+      dbRef.set(data);
+    }
+    document.getElementById('main').style.display = 'block';
+    render();
+  }, error => {
+    console.error('Error de conexión con el servidor:', error);
+  });
+}
+
+function conTiempoLimite(promesa, ms, mensajeTimeout){
+  return Promise.race([
+    promesa,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(mensajeTimeout)), ms))
+  ]);
+}
+
+async function saveData(){
+  try{ await conTiempoLimite(dbRef.set(data), 10000, 'Tiempo de espera agotado guardando.'); }
+  catch(e){ showToast('No se pudo guardar: ' + e.message); console.error(e); }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('es-CO', { hour: '2-digit', minute:'2-digit' }); }
+
+let repIdPendientePin = null;
+
+function elegirYo(repId){
+  repIdPendientePin = repId;
+  render();
+}
+
+function cancelarPin(){
+  repIdPendientePin = null;
+  render();
+}
+
+async function confirmarPin(){
+  const rep = data.repartidores.find(r => r.id === repIdPendientePin);
+  if(!rep) return;
+  const pinEscrito = document.getElementById('in-pin').value.trim();
+  try{
+    await auth.signInDriver(rep.id, pinEscrito);
+    miId = rep.id;
+    repIdPendientePin = null;
+    abrirChatOps(miId);
+    render();
+  }catch(e){
+    document.getElementById('pin-error').style.display = 'block';
+    document.getElementById('in-pin').value = '';
+  }
+}
+
+async function salir(){
+  miId = null;
+  cerrarChatOps();
+  await auth.signOut();
+  await auth.signInAnonymously();
+  render();
+}
+
+async function toggleDisponibilidad(){
+  const rep = data.repartidores.find(r => r.id === miId);
+  if(!rep) return;
+  const pasandoAFuera = rep.estado === 'disponible';
+  if(rep.estado === 'fuera'){ rep.estado = 'disponible'; }
+  else if(rep.estado === 'disponible'){ rep.estado = 'fuera'; }
+  await saveData();
+  if(pasandoAFuera) mostrarResumenCierreTurno();
+  render();
+}
+
+function mostrarResumenCierreTurno(){
+  const hoy = todayStr();
+  const misEntregasHoy = data.orders.filter(o => o.repartidorId === miId && o.estado === 'entregado' && new Date(o.deliveredAt).toDateString() === hoy);
+  const totalGanado = misEntregasHoy.reduce((sum, o) => sum + ((o.tarifa || 0) - (o.comisionCasa || 0)), 0);
+  alert(`Resumen de tu turno de hoy:\n\n${misEntregasHoy.length} domicilio${misEntregasHoy.length === 1 ? '' : 's'} entregado${misEntregasHoy.length === 1 ? '' : 's'}\nGanaste: $${totalGanado.toLocaleString('es-CO')}\n\n¡Buen trabajo!`);
+}
+
+async function aceptarPedido(orderId){
+  const orden = data.orders.find(o => o.id === orderId);
+  const rep = data.repartidores.find(r => r.id === miId);
+  if(!orden || !rep) return;
+  if(orden.estado !== 'nuevo'){ showToast('Ese pedido ya lo tomó alguien más.'); render(); return; }
+  orden.repartidorId = miId;
+  orden.estado = 'aceptado';
+  orden.aceptadoAt = Date.now();
+  rep.estado = 'en_ruta';
+  await saveData();
+  showToast('Pedido #' + orden.numero + ' aceptado.');
+  render();
+}
+
+async function marcarLlegada(orderId){
+  const orden = data.orders.find(o => o.id === orderId);
+  if(!orden) return;
+  orden.estado = 'en_destino';
+  orden.enDestinoAt = Date.now();
+  await saveData();
+  render();
+}
+
+async function marcarEnCamino(orderId){
+  const orden = data.orders.find(o => o.id === orderId);
+  if(!orden) return;
+
+  const cfg = data.config || { porcentajeCasa: 17.14, valorSugerido: 3500 };
+  const inputValorCompra = document.getElementById('in-valor-compra');
+  const inputValorServicio = document.getElementById('in-valor-servicio-salida');
+
+  if(inputValorCompra){
+    const valorCompra = parseFloat(inputValorCompra.value);
+    if(isNaN(valorCompra) || valorCompra < 0){
+      showToast('Escribe cuánto vale lo que vas a llevar (o 0 si no compraste nada).');
+      return;
+    }
+    orden.valorCompra = valorCompra;
+  }
+
+  if(inputValorServicio && !orden.tarifaFijada){
+    const valorServicio = parseFloat(inputValorServicio.value);
+    if(!valorServicio || valorServicio <= 0){
+      showToast('Escribe cuánto vale el domicilio antes de salir.');
+      return;
+    }
+    orden.tarifa = valorServicio;
+    orden.comisionCasa = Math.round(valorServicio * cfg.porcentajeCasa / 100);
+  }
+
+  orden.estado = 'camino';
+  orden.caminoAt = Date.now();
+  await saveData();
+  render();
+}
+
+async function marcarEntregado(orderId){
+  const orden = data.orders.find(o => o.id === orderId);
+  if(!orden) return;
+
+  const ganancia = (orden.tarifa || 0) - (orden.comisionCasa || 0);
+
+  orden.estado = 'entregado';
+  orden.deliveredAt = Date.now();
+  const rep = data.repartidores.find(r => r.id === orden.repartidorId);
+  if(rep) rep.estado = 'disponible';
+  await saveData();
+  showToast('Pedido #' + orden.numero + ' entregado. Te quedan $' + ganancia.toLocaleString('es-CO') + '.');
+  justDelivered = orden.numero;
+  render();
+  setTimeout(() => { justDelivered = null; render(); }, 2200);
+}
+
+function serviciosFiltrados(){
+  const entregados = data.orders.filter(o => o.repartidorId === miId && o.estado === 'entregado');
+  const ahora = Date.now();
+  if(filtroServicios === 'hoy'){
+    return entregados.filter(o => new Date(o.deliveredAt).toDateString() === new Date().toDateString());
+  } else if(filtroServicios === 'semana'){
+    return entregados.filter(o => (ahora - o.deliveredAt) <= 7 * 24 * 60 * 60 * 1000);
+  }
+  return entregados;
+}
+
+function cambiarFiltroServicios(f){
+  filtroServicios = f;
+  render();
+}
+
+function verServicios(){
+  vistaActual = 'servicios';
+  render();
+}
+
+function verPedidos(){
+  vistaActual = 'pedidos';
+  render();
+}
+
+async function guardarDineroBase(){
+  const yo = data.repartidores.find(r => r.id === miId);
+  if(!yo) return;
+  const input = document.getElementById('in-dinero-base');
+  const valor = parseFloat(input.value);
+  yo.dineroBase = isNaN(valor) ? 0 : valor;
+  await saveData();
+  showToast('Dinero base guardado.');
+  render();
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function render(){
+  const main = document.getElementById('main');
+
+  if(!miId && repIdPendientePin){
+    const rep = data.repartidores.find(r => r.id === repIdPendientePin);
+    if(!rep){ repIdPendientePin = null; render(); return; }
+    main.innerHTML = `
+      <div class="who-card">
+        <h2>Hola, ${escapeHtml(rep.nombre)}</h2>
+        <p>Escribe tu PIN para entrar.</p>
+        <input type="password" inputmode="numeric" maxlength="4" id="in-pin" placeholder="••••" style="text-align:center; font-size:1.4rem; letter-spacing:0.4em; margin-bottom:10px;" onkeydown="if(event.key==='Enter') confirmarPin()">
+        <div id="pin-error" style="display:none; color:#ff6b6b; font-size:0.8rem; margin-bottom:10px;">PIN incorrecto, intenta de nuevo.</div>
+        <button class="btn btn-primary btn-full" onclick="confirmarPin()">Entrar</button>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="cancelarPin()">← No soy yo</button>
+      </div>
+    `;
+    return;
+  }
+
+  if(!miId){
+    main.innerHTML = `
+      <div class="who-card">
+        <h2>¿Quién eres?</h2>
+        <p>Selecciona tu nombre para ver los pedidos disponibles.</p>
+        <div class="who-list">
+          ${data.repartidores.map(r => `
+            <button class="who-btn" onclick="elegirYo('${r.id}')">
+              <span>${escapeHtml(r.nombre)}</span>
+              <span class="estado-mini">${r.estado.replace('_',' ')}</span>
+            </button>
+          `).join('') || '<div class="empty">GoHouse aún no ha agregado domiciliarios.</div>'}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const yo = data.repartidores.find(r => r.id === miId);
+  if(!yo){ miId = null; render(); return; }
+
+  const hoy = todayStr();
+  const miPedidoActivo = data.orders.find(o => o.repartidorId === miId && o.estado !== 'entregado' && o.estado !== 'cancelado');
+  const disponibles = data.orders.filter(o => o.day === hoy && o.estado === 'nuevo');
+
+  if(ultimoPedidoActivoId && !miPedidoActivo){
+    const pedidoQueSeFue = data.orders.find(o => o.id === ultimoPedidoActivoId);
+    if(pedidoQueSeFue && pedidoQueSeFue.estado === 'cancelado'){
+      reproducirBeep();
+      if(navigator.vibrate) navigator.vibrate([300, 100, 300]);
+      alert('El cliente canceló el pedido #' + pedidoQueSeFue.numero + '. Ya quedaste disponible de nuevo.');
+    }
+  }
+  ultimoPedidoActivoId = miPedidoActivo ? miPedidoActivo.id : null;
+
+  const idsActuales = new Set(disponibles.map(o => o.id));
+  const hayNuevos = [...idsActuales].some(id => !idsDisponiblesVistos.has(id));
+  const meAcabaDePonerDisponible = (estadoMioAnterior && estadoMioAnterior !== 'disponible' && yo.estado === 'disponible');
+  if((hayNuevos || meAcabaDePonerDisponible) && disponibles.length > 0 && yo.estado === 'disponible'){
+    dispararAlertaPedido();
+  }
+  idsDisponiblesVistos = idsActuales;
+  estadoMioAnterior = yo.estado;
+
+  if(miPedidoActivo){
+    if(chatPedidoIdActual !== miPedidoActivo.id) abrirChatParaPedido(miPedidoActivo.id);
+  } else if(chatPedidoIdActual){
+    cerrarChatListener();
+  }
+
+  let html = `
+    <div class="driver-bar">
+      <div>
+        <div class="driver-name">${escapeHtml(yo.nombre)}</div>
+        <div class="driver-sub">¡GO! HOUSE Mensajería</div>
+        <button class="switch-off" onclick="salir()">No soy yo</button>
+      </div>
+      <div class="toggle" onclick="${yo.estado === 'en_ruta' ? '' : 'toggleDisponibilidad()'}">
+        <span class="toggle-label">${yo.estado === 'en_ruta' ? 'En ruta' : (yo.estado === 'disponible' ? 'Disponible' : 'Fuera de turno')}</span>
+        <span class="toggle-track ${yo.estado === 'disponible' || yo.estado === 'en_ruta' ? 'on' : ''}"><span class="toggle-knob"></span></span>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:16px;">
+      <button class="btn ${vistaActual === 'pedidos' ? 'btn-accept' : 'btn-ghost'}" style="flex:1;" onclick="verPedidos()">📦 Pedidos</button>
+      <button class="btn ${vistaActual === 'servicios' ? 'btn-accept' : 'btn-ghost'}" style="flex:1;" onclick="verServicios()">📊 Mis servicios</button>
+    </div>
+  `;
+
+  if(vistaActual === 'servicios'){
+    const servicios = serviciosFiltrados();
+    const totalGanancia = servicios.reduce((sum, o) => sum + ((o.tarifa || 0) - (o.comisionCasa != null ? o.comisionCasa : 0)), 0);
+
+    html += `
+      <section>
+        <h2>Dinero base</h2>
+        <div class="route-card">
+          <div class="hint" style="margin-top:0; margin-bottom:10px;">El efectivo con el que empezaste el turno, para cuadrar caja al final.</div>
+          <input type="number" id="in-dinero-base" placeholder="Ej: 50000" value="${yo.dineroBase || ''}" style="margin-bottom:0;">
+          <button class="btn btn-ghost" style="margin-top:8px;" onclick="guardarDineroBase()">Guardar dinero base</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Comisiones</h2>
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <button class="btn ${filtroServicios === 'hoy' ? 'btn-accept' : 'btn-ghost'}" style="flex:1; padding:8px;" onclick="cambiarFiltroServicios('hoy')">Hoy</button>
+          <button class="btn ${filtroServicios === 'semana' ? 'btn-accept' : 'btn-ghost'}" style="flex:1; padding:8px;" onclick="cambiarFiltroServicios('semana')">7 días</button>
+          <button class="btn ${filtroServicios === 'todo' ? 'btn-accept' : 'btn-ghost'}" style="flex:1; padding:8px;" onclick="cambiarFiltroServicios('todo')">Todo</button>
+        </div>
+        <div class="route-card" style="text-align:center;">
+          <div class="hint" style="margin-top:0;">Lo que te queda a ti (${servicios.length} servicio${servicios.length === 1 ? '' : 's'})</div>
+          <div style="font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:1.8rem; color:var(--green);">$${totalGanancia.toLocaleString('es-CO')}</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Servicios realizados</h2>
+        ${servicios.length === 0
+          ? '<div class="empty">No hay servicios entregados en este periodo.</div>'
+          : servicios.slice().reverse().map(o => `
+            <div class="route-card">
+              <div class="badge-row">
+                <span class="badge badge-time">#${o.numero} · ${new Date(o.deliveredAt).toLocaleDateString('es-CO', {day:'numeric', month:'short'})} · ${fmtTime(o.deliveredAt)}</span>
+              </div>
+              <div class="cliente">${escapeHtml(o.cliente)}</div>
+              <div class="direccion">${escapeHtml(o.direccion)}</div>
+              <div class="badge-row" style="margin-top:8px;">
+                <span class="badge badge-pago">Te quedaron: $${((o.tarifa || 0) - (o.comisionCasa != null ? o.comisionCasa : 0)).toLocaleString('es-CO')}</span>
+              </div>
+            </div>
+          `).join('')
+        }
+      </section>
+    `;
+    main.innerHTML = html;
+    return;
+  }
+
+  if(justDelivered){
+    html += `<div class="success-flash">✓ Pedido #${justDelivered} entregado — ya estás disponible de nuevo</div>`;
+  }
+
+  if(miPedidoActivo){
+    const badgeEstado = { aceptado: 'Aceptado, ve por él', en_destino: 'En el lugar, haciendo la compra', camino: 'En camino al cliente' }[miPedidoActivo.estado] || miPedidoActivo.estado;
+    const cfg = data.config || { porcentajeCasa: 17.14, valorSugerido: 3500 };
+    let boton = '';
+    if(miPedidoActivo.estado === 'aceptado'){
+      boton = `<button class="btn btn-camino" onclick="marcarLlegada('${miPedidoActivo.id}')">Llegué al lugar</button>`;
+    } else if(miPedidoActivo.estado === 'en_destino'){
+      boton = `
+        <label style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; display:block; margin:10px 0 4px;">¿Cuánto vale lo que vas a llevar? Pon 0 si no compraste nada (solo transporte)</label>
+        <input type="number" id="in-valor-compra" placeholder="Ej: 25000" style="width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; margin-bottom:10px;">
+        <label style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; display:block; margin:10px 0 4px;">${miPedidoActivo.tarifaFijada ? 'Valor del domicilio (fijado)' : '¿Cuánto vale el domicilio?'}</label>
+        <input type="number" id="in-valor-servicio-salida" value="${miPedidoActivo.tarifaFijada ? miPedidoActivo.tarifa : cfg.valorSugerido}" ${miPedidoActivo.tarifaFijada ? 'readonly aria-readonly="true"' : ''} data-comision="${miPedidoActivo.comisionCasa ?? 0}" oninput="actualizarPreviewGananciaSalida()" style="width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; margin-bottom:6px;">
+        <div class="hint" id="preview-ganancia-salida" style="margin-top:0; margin-bottom:10px;"></div>
+        <button class="btn btn-camino" onclick="marcarEnCamino('${miPedidoActivo.id}')">Salir hacia el cliente</button>
+      `;
+    } else if(miPedidoActivo.estado === 'camino'){
+      const gananciaCamino = (miPedidoActivo.tarifa || 0) - (miPedidoActivo.comisionCasa || 0);
+      boton = `
+        <div class="hint" style="margin-top:0; margin-bottom:10px;">Domicilio: $${(miPedidoActivo.tarifa || 0).toLocaleString('es-CO')} — te quedan $${gananciaCamino.toLocaleString('es-CO')}</div>
+        <button class="btn btn-entregado" onclick="marcarEntregado('${miPedidoActivo.id}')">Marcar entregado</button>
+      `;
+    }
+
+    html += `
+      <section>
+        <h2>Tu pedido activo</h2>
+        <div class="route-card">
+          <span class="active-tag">${badgeEstado}</span>
+          <div class="route-map">
+            <span class="pin pin-origin"></span>
+            <span class="route-line"></span>
+            <span class="pin pin-dest"></span>
+          </div>
+          <div class="route-labels"><span>${escapeHtml(miPedidoActivo.lugar || 'Punto de recogida')}</span><span>Cliente</span></div>
+          <div class="cliente">${escapeHtml(miPedidoActivo.cliente)}</div>
+          <div class="direccion">${escapeHtml(miPedidoActivo.direccion)}${miPedidoActivo.telefono ? ' · ' + escapeHtml(miPedidoActivo.telefono) : ''}</div>
+          <div class="pedido-text">${escapeHtml(miPedidoActivo.pedido)}</div>
+          ${miPedidoActivo.tarifaFijada ? `<div class="hint" id="gh-driver-fixed-tariff"><b>${escapeHtml(miPedidoActivo.zonaTarifaNombre)} · Domicilio: $${Number(miPedidoActivo.tarifa).toLocaleString('es-CO')}</b><br>Tarifa de la referencia seleccionada; valor fijado al solicitar.</div>` : ''}
+          <div class="badge-row">
+            <span class="badge badge-pago">${miPedidoActivo.pago}</span>
+            <span class="badge badge-time">${fmtTime(miPedidoActivo.createdAt)}</span>
+          </div>
+          ${boton}
+        </div>
+      </section>
+    `;
+  } else if(yo.estado === 'fuera'){
+    html += `<div class="off-banner">Estás fuera de turno. Actívate arriba para ver pedidos disponibles.</div>`;
+  } else {
+    html += `
+      <section>
+        <h2>Pedidos disponibles <span class="count">(${disponibles.length})</span></h2>
+        ${disponibles.length === 0
+          ? '<div class="empty">No hay pedidos esperando por ahora. Te avisamos apenas llegue uno.</div>'
+          : disponibles.map((o, idx) => `
+            <div class="route-card ${idx === 0 ? 'is-new' : ''}">
+              ${idx === 0 ? '<span class="new-order-tag"><span class="dot-blink"></span>Pedido nuevo</span>' : ''}
+              <div class="route-map">
+                <span class="pin pin-origin"></span>
+                <span class="route-line"></span>
+                <span class="pin pin-dest"></span>
+              </div>
+              <div class="route-labels"><span>${escapeHtml(o.lugar || 'Punto de recogida')}</span><span>Cliente</span></div>
+              <div class="cliente">${escapeHtml(o.cliente)}</div>
+              <div class="direccion">${escapeHtml(o.direccion)}</div>
+              <div class="pedido-text">${escapeHtml(o.pedido)}</div>
+              <div class="badge-row">
+                <span class="badge badge-pago">${o.pago}</span>
+                <span class="badge badge-time">Pedido a las ${fmtTime(o.createdAt)}</span>
+              </div>
+              <button class="btn btn-accept" onclick="aceptarPedido('${o.id}')">Aceptar pedido</button>
+            </div>
+          `).join('')
+        }
+      </section>
+    `;
+  }
+
+  main.innerHTML = html;
+  if(document.getElementById('in-valor-servicio-salida')) actualizarPreviewGananciaSalida();
+}
+
+function actualizarPreviewGananciaSalida(){
+  const cfg = data.config || { porcentajeCasa: 17.14, valorSugerido: 3500 };
+  const input = document.getElementById('in-valor-servicio-salida');
+  const preview = document.getElementById('preview-ganancia-salida');
+  if(!input || !preview) return;
+  const valor = parseFloat(input.value) || 0;
+  const comisionCasa = input.readOnly ? Number(input.dataset.comision) : Math.round(valor * cfg.porcentajeCasa / 100);
+  const ganancia = valor - comisionCasa;
+  preview.textContent = `Te quedan $${ganancia.toLocaleString('es-CO')} (GoHouse se queda $${comisionCasa.toLocaleString('es-CO')})`;
+}
+
+auth.signInAnonymously().then(() => {
+  iniciarEscuchaEnVivo();
+}).catch(err => {
+  console.error('Error de autenticación:', err);
+  document.getElementById('main').innerHTML = '<div class="empty">No se pudo conectar. Revisa tu internet e intenta de nuevo.</div>';
+});
+
+// ---- CHAT ----
+let chatRef = null;
+let chatListener = null;
+let chatAbierto = false;
+let mensajesNoLeidos = 0;
+let chatPedidoIdActual = null;
+
+function abrirChatParaPedido(orderId){
+  cerrarChatListener();
+  chatPedidoIdActual = orderId;
+  chatRef = dbRef.parent.child('chats').child(orderId);
+  document.getElementById('chat-btn').style.display = 'flex';
+  chatListener = snapshot => {
+    const mensajes = [];
+    snapshot.forEach(child => { mensajes.push(child.val()); });
+    renderMensajesChat(mensajes);
+  };
+  chatRef.on('value', chatListener);
+}
+
+function cerrarChatListener(){
+  if(chatRef && chatListener){ chatRef.off('value', chatListener); }
+  chatRef = null;
+  chatListener = null;
+  chatPedidoIdActual = null;
+  chatAbierto = false;
+  mensajesNoLeidos = 0;
+  document.getElementById('chat-btn').style.display = 'none';
+  document.getElementById('chat-panel').style.display = 'none';
+}
+
+function toggleChat(){
+  chatAbierto = !chatAbierto;
+  document.getElementById('chat-panel').style.display = chatAbierto ? 'flex' : 'none';
+  if(chatAbierto){
+    mensajesNoLeidos = 0;
+    document.getElementById('chat-badge').style.display = 'none';
+    const cont = document.getElementById('chat-mensajes');
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function renderMensajesChat(mensajes){
+  const cont = document.getElementById('chat-mensajes');
+  const estabaAbajo = cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 20;
+
+  if(mensajes.length === 0){
+    cont.innerHTML = '<div class="empty" style="text-align:center; padding:20px 10px;">Escríbele al cliente si necesitas avisarle algo.</div>';
+  } else {
+    cont.innerHTML = mensajes.map(m => `
+      <div class="chat-msg ${m.de === 'domiciliario' ? 'propio' : 'ajeno'}">
+        ${m.tipo === 'imagen'
+          ? `<img src="${m.imagen}" onclick="verFotoCompleta('${m.imagen.replace(/'/g, "\\'")}')">`
+          : escapeHtml(m.texto)}
+        <span class="chat-hora">${fmtTime(m.hora)}</span>
+      </div>
+    `).join('');
+  }
+
+  const nuevosDeOtro = mensajes.filter(m => m.de !== 'domiciliario').length;
+  if(!chatAbierto && nuevosDeOtro > mensajesNoLeidos){
+    mensajesNoLeidos = nuevosDeOtro;
+    const badge = document.getElementById('chat-badge');
+    badge.textContent = mensajesNoLeidos;
+    badge.style.display = 'flex';
+    reproducirBeep();
+    if(navigator.vibrate) navigator.vibrate(150);
+    const ultimo = mensajes[mensajes.length - 1];
+    mostrarNotifChat('💬 Cliente: ' + (ultimo.tipo === 'imagen' ? '📷 Foto' : ultimo.texto).slice(0, 60), () => toggleChat());
+  }
+
+  if(chatAbierto || estabaAbajo){
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function enviarMensajeChat(){
+  if(!chatRef) return;
+  const input = document.getElementById('chat-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  chatRef.push({ de: 'domiciliario', texto, hora: Date.now() }).catch(err => { console.error('Error enviando chat:', err); showToast('No se pudo enviar: ' + err.message); });
+  input.value = '';
+}
+
+function enviarFotoChat(event){
+  if(!chatRef) return;
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const maxAncho = 700;
+      const escala = Math.min(1, maxAncho / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * escala;
+      canvas.height = img.height * escala;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      chatRef.push({ de: 'domiciliario', tipo: 'imagen', imagen: dataUrl, hora: Date.now() }).catch(err => { console.error('Error enviando foto:', err); showToast('No se pudo enviar la foto: ' + err.message); });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function verFotoCompleta(src){
+  document.getElementById('chat-foto-viewer-img').src = src;
+  document.getElementById('chat-foto-viewer').style.display = 'flex';
+}
+
+function cerrarVisorFoto(){
+  document.getElementById('chat-foto-viewer').style.display = 'none';
+}
+
+// ---- ALERTAS DE PEDIDOS NUEVOS ----
+function activarAlertas(){
+  alertasActivas = true;
+  try{ new (window.AudioContext || window.webkitAudioContext)().resume(); }catch(e){}
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(() => GoHouseVPS.subscribePush()).catch(() => {});
+  }
+  reproducirBeep();
+  render();
+}
+
+let notifChatAccion = null;
+
+function mostrarNotifChat(texto, accionAlAbrir){
+  document.getElementById('chat-notif-texto').textContent = texto;
+  notifChatAccion = accionAlAbrir;
+  document.getElementById('chat-notif-banner').style.display = 'block';
+}
+
+function cerrarNotifChat(){
+  document.getElementById('chat-notif-banner').style.display = 'none';
+  notifChatAccion = null;
+}
+
+function abrirDesdeNotifChat(){
+  if(notifChatAccion) notifChatAccion();
+  cerrarNotifChat();
+}
+
+function reproducirBeep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.value = 1100;
+      gain2.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc2.start();
+      osc2.stop(ctx.currentTime + 0.5);
+    }, 250);
+  }catch(e){ console.error('No se pudo reproducir el sonido:', e); }
+}
+
+function dispararAlertaPedido(){
+  if(!alertasActivas) return;
+  reproducirBeep();
+  if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  if('Notification' in window && Notification.permission === 'granted'){
+    try{
+      const b = window.GoHouseBrand?.config || {};
+      new Notification('¡Pedido nuevo disponible!', {
+        body: `Hay un domicilio esperando en ${b.brandName || 'la plataforma'}.`,
+        ...(b.appIconUrl ? { icon:b.appIconUrl } : {})
+      });
+    }catch(e){ /* algunos navegadores requieren service worker, ignoramos si falla */ }
+  }
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker-domiciliarios.js').catch(e => console.log('SW no registrado:', e));
+  });
+}
+
+// ---- CHAT DE OPERACIONES CON GOHOUSE (no depende de un pedido) ----
+let chatOpsRef = null;
+let chatOpsListener = null;
+let chatOpsAbierto = false;
+let chatOpsNoLeidos = 0;
+
+function abrirChatOps(repId){
+  document.getElementById('chat-ops-btn').style.display = 'flex';
+  chatOpsRef = dbRef.parent.child('chatsPanel').child(repId);
+  chatOpsListener = snapshot => {
+    const mensajes = [];
+    snapshot.forEach(child => { mensajes.push(child.val()); });
+    renderMensajesChatOps(mensajes);
+  };
+  chatOpsRef.on('value', chatOpsListener);
+}
+
+function cerrarChatOps(){
+  if(chatOpsRef && chatOpsListener){ chatOpsRef.off('value', chatOpsListener); }
+  chatOpsRef = null;
+  chatOpsListener = null;
+  chatOpsAbierto = false;
+  chatOpsNoLeidos = 0;
+  document.getElementById('chat-ops-btn').style.display = 'none';
+  document.getElementById('chat-ops-panel').style.display = 'none';
+}
+
+function toggleChatOps(){
+  chatOpsAbierto = !chatOpsAbierto;
+  document.getElementById('chat-ops-panel').style.display = chatOpsAbierto ? 'flex' : 'none';
+  if(chatOpsAbierto){
+    chatOpsNoLeidos = 0;
+    document.getElementById('chat-ops-badge').style.display = 'none';
+    const cont = document.getElementById('chat-ops-mensajes');
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function renderMensajesChatOps(mensajes){
+  const cont = document.getElementById('chat-ops-mensajes');
+  const estabaAbajo = cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 20;
+
+  if(mensajes.length === 0){
+    cont.innerHTML = '<div class="empty" style="text-align:center; padding:20px 10px;">Escríbele a GoHouse si necesitas algo.</div>';
+  } else {
+    cont.innerHTML = mensajes.map(m => `
+      <div class="chat-msg ${m.de === 'domiciliario' ? 'propio' : 'ajeno'}">
+        ${escapeHtml(m.texto)}
+        <span class="chat-hora">${fmtTime(m.hora)}</span>
+      </div>
+    `).join('');
+  }
+
+  const nuevosDeOtro = mensajes.filter(m => m.de !== 'domiciliario').length;
+  if(!chatOpsAbierto && nuevosDeOtro > chatOpsNoLeidos){
+    chatOpsNoLeidos = nuevosDeOtro;
+    const badge = document.getElementById('chat-ops-badge');
+    badge.textContent = chatOpsNoLeidos;
+    badge.style.display = 'flex';
+    reproducirBeep();
+    if(navigator.vibrate) navigator.vibrate(150);
+    const ultimo = mensajes[mensajes.length - 1];
+    mostrarNotifChat('🏠 GoHouse: ' + ultimo.texto.slice(0, 60), () => toggleChatOps());
+  }
+
+  if(chatOpsAbierto || estabaAbajo){
+    cont.scrollTop = cont.scrollHeight;
+  }
+}
+
+function enviarMensajeChatOps(){
+  if(!chatOpsRef) return;
+  const input = document.getElementById('chat-ops-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  chatOpsRef.push({ de: 'domiciliario', texto, hora: Date.now() }).catch(err => { console.error('Error enviando chat de operaciones:', err); showToast('No se pudo enviar: ' + err.message); });
+  input.value = '';
+}
+
+document.addEventListener('click', function primerToqueDesbloqueaAudio(){
+  try{ new (window.AudioContext || window.webkitAudioContext)().resume(); }catch(e){}
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(() => GoHouseVPS.subscribePush()).catch(() => {});
+  }
+  document.removeEventListener('click', primerToqueDesbloqueaAudio);
+}, { once: true });
+</script>
+</body>
+</html>
