@@ -1,0 +1,39 @@
+name: Prepare driver documents
+on:
+  push:
+    branches: ['feat/driver-documents-20260917']
+    paths: ['tools/prepare-driver-documents.py','release/payload/driver-documents-1/**','.github/workflows/prepare-driver-documents.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/driver-documents-20260917
+          fetch-depth: 0
+      - name: Prepare overlay from v27
+        run: python3 tools/prepare-driver-documents.py
+      - name: Validate JavaScript and contracts
+        run: |
+          node --check release/payload/driver-documents-1/server/src/server.js
+          node --check release/payload/driver-documents-1/server/src/driver-documents.js
+          node --check release/payload/driver-documents-1/web/gohouse-branding.js
+          node --check release/payload/driver-documents-1/web/gohouse-driver-documents.js
+          grep -q "registerDriverDocumentRoutes" release/payload/driver-documents-1/server/src/server.js
+          grep -q "gohouse-driver-documents.js" release/payload/driver-documents-1/web/gohouse-branding.js
+          grep -q "SOAT" release/payload/driver-documents-1/server/src/driver-documents.js
+          grep -q "RTM / Tecnomecánica" release/payload/driver-documents-1/server/src/driver-documents.js
+          grep -q "ADMIN_REQUIRED" release/payload/driver-documents-1/server/src/driver-documents.js
+      - name: Commit generated overlay
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release/payload/driver-documents-1/server/src/server.js release/payload/driver-documents-1/web/gohouse-branding.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'build(drivers): generate v28 document overlay'
+            git pull --rebase origin feat/driver-documents-20260917
+            git push origin HEAD:feat/driver-documents-20260917
+          fi
