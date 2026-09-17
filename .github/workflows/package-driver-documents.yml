@@ -1,9 +1,10 @@
 name: Package driver documents v28
-# Packaging workflow for the isolated employee-document release.
 on:
   push:
-    branches: ['feat/driver-documents-20260917']
-    paths: ['.github/workflows/package-driver-documents.yml']
+    branches:
+      - feat/driver-documents-20260917
+    paths:
+      - .github/workflows/package-driver-documents.yml
 permissions:
   contents: write
 jobs:
@@ -15,50 +16,19 @@ jobs:
         with:
           ref: feat/driver-documents-20260917
           fetch-depth: 0
-      - name: Build immutable manifest
-        run: |
-          python3 - <<'PY'
-          import pathlib,json,hashlib,subprocess,datetime
-          source='63a1b54cd9bece441a04e3132447822ea3c1c22a'
-          prefix='release/payload/driver-documents-1/'
-          paths=['server/src/server.js','server/src/driver-documents.js','web/gohouse-branding.js','web/gohouse-driver-documents.js']
-          def entry(p):
-              b=subprocess.check_output(['git','show',source+':'+prefix+p])
-              assert pathlib.Path(prefix+p).read_bytes()==b,p
-              return {'path':p,'url':'https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/'+source+'/'+prefix+p,'sha256':hashlib.sha256(b).hexdigest()}
-          mig=entry('migrations/006_driver_documents.sql')
-          m={'version':'2026.09.17-white-label.28','published_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'release','files':[entry(p) for p in paths],'delete':[],'migrations':[mig]}
-          pathlib.Path('release/version.json').write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
-          pathlib.Path('release/DRIVER_DOCUMENTS_V28.md').write_text('''# Domiciliarios · Documentos privados v28
-
-Panel: https://domicilios-llanos.vantixgc.com/panel/
-Base de producción anterior: v27.
-
-Añade botón 📁 junto al chat de cada domiciliario. Expediente por renglones:
-- Datos personales: nombre, documento, celular, dirección y contacto de emergencia.
-- Vehículo: tipo, placa, marca, línea, modelo y color.
-- Documentos: Cédula, licencia, tarjeta de propiedad, SOAT y RTM/Tecnomecánica, más documentos personalizados.
-- Vencimientos: rojo vencido, amarillo hasta 30 días, verde vigente.
-- Adjuntos: PDF/JPG/PNG/WEBP hasta 8 MB, almacenados en tabla privada y servidos solo con sesión de administrador.
-
-Seguridad: los expedientes NO se agregan a gohouse-data ni a repartidores; cliente y app del domiciliario no los reciben. Las rutas nuevas exigen rol administrador. Los adjuntos no usan URLs públicas.
-
-No modifica pedidos, tarifas, caja, chat, PIN, QR ni flujo del domiciliario.
-''')
-          PY
-      - name: Validate package
+      - name: Build manifest
+        run: python3 tools/package-driver-documents.py
+      - name: Validate JavaScript
         run: |
           node --check release/payload/driver-documents-1/server/src/server.js
           node --check release/payload/driver-documents-1/server/src/driver-documents.js
           node --check release/payload/driver-documents-1/web/gohouse-branding.js
           node --check release/payload/driver-documents-1/web/gohouse-driver-documents.js
-          grep -q 'driver_document_records' release/payload/driver-documents-1/migrations/006_driver_documents.sql
-          grep -q 'driver_document_files' release/payload/driver-documents-1/migrations/006_driver_documents.sql
-      - name: Commit release manifest
+      - name: Commit manifest
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add release/version.json release/DRIVER_DOCUMENTS_V28.md
-          git commit -m 'release(v28): private driver documents and expiry control'
+          git commit -m "release(v28): private driver documents and expiry control"
           git pull --rebase origin feat/driver-documents-20260917
           git push origin HEAD:feat/driver-documents-20260917
