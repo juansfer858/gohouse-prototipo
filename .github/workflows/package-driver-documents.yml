@@ -1,4 +1,5 @@
 name: Package driver documents v28
+# Packaging workflow for the isolated employee-document release.
 on:
   push:
     branches: ['feat/driver-documents-20260917']
