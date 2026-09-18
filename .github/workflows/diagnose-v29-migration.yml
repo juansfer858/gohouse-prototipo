@@ -1,6 +1,8 @@
 name: Diagnose v29 migration
 on:
-  workflow_dispatch:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/diagnose-v29-migration.yml']
 permissions:
   contents: read
 jobs:
