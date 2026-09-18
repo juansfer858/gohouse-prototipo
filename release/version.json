@@ -1,12 +1,17 @@
 {
-  "version": "2026.09.18-white-label.31",
-  "published_at": "2026-09-18T20:32:00Z",
+  "version": "2026.09.18-white-label.32",
+  "published_at": "2026-09-18T20:35:00Z",
   "status": "release",
   "files": [
     {
+      "path": "server/src/server.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/b92dec2b300ba370c3a08b462a13a3938fb12c48/release/payload/push-brand-2/server/src/server.js",
+      "sha256": "27b69f6b471a654ca85597d3fc31cd6eeee36559cf6b63fe17dd3fbbc3da428a"
+    },
+    {
       "path": "server/src/push.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/66d84305bef0f40609281bbdd309f766e4dd3e49/release/payload/push-brand-1/server/src/push.js",
-      "sha256": "07c6b0d1f7c95f52e55351e9b55b9a92165a33ec42f6301097e338221410237f"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/b92dec2b300ba370c3a08b462a13a3938fb12c48/release/payload/push-brand-2/server/src/push.js",
+      "sha256": "322c5f12b1ccd3b27863f3b311c09d699133f7ba99fea974c178c28f64d3b4c3"
     }
   ],
   "delete": [],
