@@ -1,0 +1,28 @@
+name: Validate brand and permanent driver code
+on:
+  push:
+    branches: ['fix/brand-permanent-driver-code-20260918']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: |
+          node --check release/payload/brand-driver-code-1/server/src/server.js
+          node --check release/payload/brand-driver-code-1/web/gohouse-branding.js
+          node --check release/payload/brand-driver-code-1/web/gohouse-vps-adapter.js
+      - name: Permanent driver-code contract
+        run: |
+          grep -q "DRIVER_CODE_IMMUTABLE" release/payload/brand-driver-code-1/server/src/server.js
+          grep -q "DRIVER_REMOVED" release/payload/brand-driver-code-1/server/src/server.js
+          grep -q "storedDriverCredential" release/payload/brand-driver-code-1/web/gohouse-vps-adapter.js
+          grep -q "storeDriverCredential(driverId,pin)" release/payload/brand-driver-code-1/web/gohouse-vps-adapter.js
+          grep -q "enforcePermanentDriverCode" release/payload/brand-driver-code-1/web/gohouse-branding.js
+      - name: Visible-brand contract
+        run: |
+          grep -q "brandName: 'Domicilios Llanos'" release/payload/brand-driver-code-1/web/gohouse-branding.js
+          grep -q "publicBrandingWithoutLegacyName" release/payload/brand-driver-code-1/server/src/server.js
