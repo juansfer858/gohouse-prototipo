@@ -26,3 +26,4 @@ jobs:
         run: |
           grep -q "brandName: 'Domicilios Llanos'" release/payload/brand-driver-code-1/web/gohouse-branding.js
           grep -q "publicBrandingWithoutLegacyName" release/payload/brand-driver-code-1/server/src/server.js
+
