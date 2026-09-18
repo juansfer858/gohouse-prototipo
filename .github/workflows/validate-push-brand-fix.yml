@@ -17,3 +17,4 @@ jobs:
           grep -q 'brandInfo(after).name' release/payload/push-brand-1/server/src/push.js
           ! grep -q 'Mi domicilio de GoHouse' release/payload/push-brand-1/server/src/push.js
           ! grep -q 'Mi domicilio de GO HOUSE' release/payload/push-brand-1/server/src/push.js
+
