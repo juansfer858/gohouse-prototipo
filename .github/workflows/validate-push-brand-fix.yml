@@ -1,0 +1,19 @@
+name: Validate push brand fix
+on:
+  push:
+    branches: ['fix/push-brand-name-20260918']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and notification contract
+        run: |
+          node --check release/payload/push-brand-1/server/src/push.js
+          grep -q 'Mi domicilio de ${company}' release/payload/push-brand-1/server/src/push.js
+          grep -q 'brandInfo(after).name' release/payload/push-brand-1/server/src/push.js
+          ! grep -q 'Mi domicilio de GoHouse' release/payload/push-brand-1/server/src/push.js
+          ! grep -q 'Mi domicilio de GO HOUSE' release/payload/push-brand-1/server/src/push.js
