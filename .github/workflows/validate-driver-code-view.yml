@@ -1,0 +1,26 @@
+name: Validate driver code viewer
+on:
+  push:
+    branches: ['feat/driver-code-view-20260918']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: |
+          node --check release/payload/driver-code-view-1/server/src/server.js
+          node --check release/payload/driver-code-view-1/web/gohouse-branding.js
+          node --check release/payload/driver-code-view-1/web/gohouse-driver-codes.js
+      - name: Contracts
+        run: |
+          grep -q "/api/driver-codes/:id" release/payload/driver-code-view-1/server/src/server.js
+          grep -q "await loginDriver(driverId,pin)" release/payload/driver-code-view-1/server/src/server.js
+          grep -q "saveDriverAdminCode(id,pin" release/payload/driver-code-view-1/server/src/server.js
+          grep -q "DELETE FROM driver_access_codes" release/payload/driver-code-view-1/server/src/server.js
+          grep -q "gohouse-driver-codes.js" release/payload/driver-code-view-1/web/gohouse-branding.js
+          grep -q "Registrar código actual" release/payload/driver-code-view-1/web/gohouse-driver-codes.js
+          grep -q "driver_access_codes" release/payload/driver-code-view-1/migrations/008_driver_access_codes.sql
