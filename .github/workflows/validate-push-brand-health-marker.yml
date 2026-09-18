@@ -1,0 +1,20 @@
+name: Validate push brand health marker
+on:
+  push:
+    branches: ['fix/push-brand-health-marker-20260918']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate
+        run: |
+          node --check release/payload/push-brand-2/server/src/server.js
+          node --check release/payload/push-brand-2/server/src/push.js
+          grep -q "pushTemplateVersion" release/payload/push-brand-2/server/src/server.js
+          grep -q "brand-v31" release/payload/push-brand-2/server/src/push.js
+          grep -q 'Mi domicilio de ${company}' release/payload/push-brand-2/server/src/push.js
+          ! grep -q 'Mi domicilio de GoHouse' release/payload/push-brand-2/server/src/push.js
