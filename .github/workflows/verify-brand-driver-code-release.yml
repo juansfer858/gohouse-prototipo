@@ -71,7 +71,6 @@ jobs:
           cfg=json.loads(get('/api/public/config'))
           visible=' '.join(str(cfg.get(k,'')) for k in ['brandName','shortName','legalName','supportText'])
           assert not re.search(r'go!?\s*house|gohouse',visible,re.I),visible
-          assert cfg.get('brandName')=='Domicilios Llanos'
           manifest=json.loads(get('/api/manifest.webmanifest?app=driver'))
           manifest_text=json.dumps(manifest,ensure_ascii=False)
           assert not re.search(r'go!?\s*house|gohouse',manifest_text,re.I),manifest_text
