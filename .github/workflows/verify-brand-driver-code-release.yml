@@ -1,0 +1,83 @@
+name: Verify brand and permanent driver code release
+on:
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/version.json'
+      - 'release/payload/brand-driver-code-1/**'
+      - '.github/workflows/verify-brand-driver-code-release.yml'
+  push:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/version.json'
+      - '.github/workflows/verify-brand-driver-code-release.yml'
+permissions:
+  contents: read
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate v29 immutable payload
+        run: |
+          python3 - <<'PY'
+          import pathlib,json,hashlib,re,subprocess
+          m=json.loads(pathlib.Path('release/version.json').read_text())
+          assert m['version']=='2026.09.18-white-label.29'
+          expected={'server/src/server.js','web/gohouse-branding.js','web/gohouse-vps-adapter.js'}
+          assert {x['path'] for x in m['files']}==expected
+          assert not m['delete'] and len(m['migrations'])==1
+          for x in m['files']+m['migrations']:
+              mt=re.fullmatch(r'https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/([a-f0-9]{40})/(release/payload/brand-driver-code-1/.+)',x['url'])
+              assert mt,x['url']
+              source,p=mt.groups()
+              b=subprocess.check_output(['git','show',source+':'+p])
+              assert hashlib.sha256(b).hexdigest()==x['sha256']
+          server=subprocess.check_output(['git','show',m['files'][0]['url'].split('/')[5]+':release/payload/brand-driver-code-1/server/src/server.js']).decode()
+          assert 'DRIVER_CODE_IMMUTABLE' in server and 'DRIVER_REMOVED' in server
+          print('PASS: v29 immutable payload and permanent driver-code contract')
+          PY
+  deployed-read-only:
+    if: github.event_name == 'push'
+    needs: manifest
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify published v29 with GET requests only
+        run: |
+          python3 - <<'PY'
+          import urllib.request,pathlib,json,hashlib,time,re
+          m=json.loads(pathlib.Path('release/version.json').read_text())
+          base='https://domicilios-llanos.vantixgc.com'
+          def get(p):
+              req=urllib.request.Request(base+p,headers={'Cache-Control':'no-cache','User-Agent':'Domicilios-Llanos-v29-verifier'})
+              return urllib.request.urlopen(req,timeout=15).read()
+          expected={x['path']:x for x in m['files']}
+          for attempt in range(36):
+              try:
+                  health=json.loads(get('/api/health'))
+                  branding=get('/gohouse-branding.js?release=20260918.29')
+                  if health.get('service')=='domicilios-llanos-vps' and hashlib.sha256(branding).hexdigest()==expected['web/gohouse-branding.js']['sha256']:
+                      break
+              except Exception as e:
+                  print('waiting',attempt+1,type(e).__name__)
+              time.sleep(5)
+          else:
+              raise RuntimeError('v29 not published')
+          cfg=json.loads(get('/api/public/config'))
+          visible=' '.join(str(cfg.get(k,'')) for k in ['brandName','shortName','legalName','supportText'])
+          assert not re.search(r'go!?\s*house|gohouse',visible,re.I),visible
+          assert cfg.get('brandName')=='Domicilios Llanos'
+          manifest=json.loads(get('/api/manifest.webmanifest?app=driver'))
+          manifest_text=json.dumps(manifest,ensure_ascii=False)
+          assert not re.search(r'go!?\s*house|gohouse',manifest_text,re.I),manifest_text
+          for path in ['web/gohouse-branding.js','web/gohouse-vps-adapter.js']:
+              public='/'+path[4:]
+              assert hashlib.sha256(get(public+'?release=20260918.29')).hexdigest()==expected[path]['sha256']
+          assert health.get('ok') is True and health.get('db') is True
+          print(json.dumps({'deploymentVerified':True,'version':m['version'],'brandName':cfg.get('brandName'),'writesPerformed':0,'health':health.get('ok')},ensure_ascii=False))
+          PY
