@@ -1,0 +1,30 @@
+name: Diagnose v30 manifest
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/diagnose-v30-manifest.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate release hashes
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,subprocess,hashlib,re
+          m=json.loads(pathlib.Path('release/version.json').read_text())
+          print('version',m['version'])
+          for x in m['files']+m['migrations']:
+              mt=re.fullmatch(r'https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/([0-9a-f]{40})/(.+)',x['url'])
+              assert mt,x['url']
+              sha,p=mt.groups()
+              b=subprocess.check_output(['git','show',sha+':'+p])
+              got=hashlib.sha256(b).hexdigest()
+              print(x['path'],got,x['sha256'],got==x['sha256'])
+              assert got==x['sha256'],x['path']
+          PY
