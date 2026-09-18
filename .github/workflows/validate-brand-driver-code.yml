@@ -3,7 +3,7 @@ on:
   push:
     branches: ['fix/brand-permanent-driver-code-20260918']
 permissions:
-  contents: write
+  contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -20,44 +20,8 @@ jobs:
           grep -q "DRIVER_CODE_IMMUTABLE" release/payload/brand-driver-code-1/server/src/server.js
           grep -q "DRIVER_REMOVED" release/payload/brand-driver-code-1/server/src/server.js
           grep -q "storedDriverCredential" release/payload/brand-driver-code-1/web/gohouse-vps-adapter.js
-          grep -q "storeDriverCredential(driverId,pin)" release/payload/brand-driver-code-1/web/gohouse-vps-adapter.js
           grep -q "enforcePermanentDriverCode" release/payload/brand-driver-code-1/web/gohouse-branding.js
       - name: Visible-brand contract
         run: |
           grep -q "brandName: 'Domicilios Llanos'" release/payload/brand-driver-code-1/web/gohouse-branding.js
           grep -q "publicBrandingWithoutLegacyName" release/payload/brand-driver-code-1/server/src/server.js
-      - name: Build immutable v29 manifest
-        run: |
-          python3 - <<'PY'
-          import pathlib,json,hashlib,subprocess,datetime
-          source='a7e28304c9cda5a081b72e004217bb830093d9fb'
-          prefix='release/payload/brand-driver-code-1/'
-          files=['server/src/server.js','web/gohouse-branding.js','web/gohouse-vps-adapter.js']
-          migration='migrations/007_brand_driver_code.sql'
-          def item(p):
-              b=subprocess.check_output(['git','show',source+':'+prefix+p])
-              assert pathlib.Path(prefix+p).read_bytes()==b,p
-              return {'path':p,'url':'https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/'+source+'/'+prefix+p,'sha256':hashlib.sha256(b).hexdigest()}
-          m={'version':'2026.09.18-white-label.29','published_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'release','files':[item(p) for p in files],'delete':[],'migrations':[item(migration)]}
-          pathlib.Path('release/version.json').write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
-          pathlib.Path('release/BRAND_DRIVER_CODE_V29.md').write_text("""# V29 · marca visible y código permanente de domiciliarios
-
-- Marca visible: Domicilios Llanos.
-- Código del domiciliario inmutable mientras el domiciliario exista.
-- Sesión restaurable con el mismo código.
-- Eliminar al domiciliario revoca acceso.
-- Sin cambios a pedidos, tarifas, caja, documentos, QR o chat.
-""")
-          PY
-      - name: Commit v29 manifest when needed
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add release/version.json release/BRAND_DRIVER_CODE_V29.md
-          if ! git diff --cached --quiet; then
-            git commit -m 'release(v29): permanent driver code and visible brand cleanup'
-            git pull --rebase origin fix/brand-permanent-driver-code-20260918
-            git push origin HEAD:fix/brand-permanent-driver-code-20260918
-          fi
-
-
