@@ -1,35 +1,30 @@
 {
-  "version": "2026.09.17-white-label.28",
-  "published_at": "2026-09-17T21:20:59.214080+00:00",
+  "version": "2026.09.18-white-label.29",
+  "published_at": "2026-09-18T16:36:00Z",
   "status": "release",
   "files": [
     {
       "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/63a1b54cd9bece441a04e3132447822ea3c1c22a/release/payload/driver-documents-1/server/src/server.js",
-      "sha256": "4415b3a1a0f8e94f03f083c5102ae7236a45f1cab5ccbdb785c030b9164a2e0d"
-    },
-    {
-      "path": "server/src/driver-documents.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/63a1b54cd9bece441a04e3132447822ea3c1c22a/release/payload/driver-documents-1/server/src/driver-documents.js",
-      "sha256": "fdd46772e8ec4b7f7f77688f2c8ea3db7a2887680139c335440074619bb2db49"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a7e28304c9cda5a081b72e004217bb830093d9fb/release/payload/brand-driver-code-1/server/src/server.js",
+      "sha256": "de2f26d165746402db46d38a5a076db04b4d6eccf419b73ccc73fbaf25aee9c8"
     },
     {
       "path": "web/gohouse-branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/63a1b54cd9bece441a04e3132447822ea3c1c22a/release/payload/driver-documents-1/web/gohouse-branding.js",
-      "sha256": "cb9da9a3a242bc40e7842a5331b358445e60efa9054caada1a726d0abd9259d4"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a7e28304c9cda5a081b72e004217bb830093d9fb/release/payload/brand-driver-code-1/web/gohouse-branding.js",
+      "sha256": "ce117f8b954687ced9d9a2de0e53f3227e742e20de1f902cec0c60222b53cac7"
     },
     {
-      "path": "web/gohouse-driver-documents.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/63a1b54cd9bece441a04e3132447822ea3c1c22a/release/payload/driver-documents-1/web/gohouse-driver-documents.js",
-      "sha256": "22a4f4a77319407a4a33c81fe9f73cd03c0d59f516b153c853cd6156d013b075"
+      "path": "web/gohouse-vps-adapter.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a7e28304c9cda5a081b72e004217bb830093d9fb/release/payload/brand-driver-code-1/web/gohouse-vps-adapter.js",
+      "sha256": "79890eeef28ae0e1413131601a2281680771145b3bae038a5e5e2446ad62ca69"
     }
   ],
   "delete": [],
   "migrations": [
     {
-      "path": "migrations/006_driver_documents.sql",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/63a1b54cd9bece441a04e3132447822ea3c1c22a/release/payload/driver-documents-1/migrations/006_driver_documents.sql",
-      "sha256": "c5ed69cb3d9ba0e062d4d434a01e9389bd029a1f5a0cac511e63d726062b74c1"
+      "path": "migrations/007_brand_driver_code.sql",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a7e28304c9cda5a081b72e004217bb830093d9fb/release/payload/brand-driver-code-1/migrations/007_brand_driver_code.sql",
+      "sha256": "694645e33b2fe09490d8c91edd5c13b9c15950a0e69a127ad95b0b11d2225581"
     }
   ]
 }
