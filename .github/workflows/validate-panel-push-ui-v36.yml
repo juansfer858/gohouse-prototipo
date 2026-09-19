@@ -1,0 +1,21 @@
+name: Validate panel push UI v36
+on:
+  push:
+    branches: ['feat/panel-push-ui-20260919']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and panel notification contract
+        run: |
+          node --check release/payload/panel-push-ui-1/web/gohouse-push.js
+          node --check release/payload/panel-push-ui-1/web/gohouse-branding.js
+          grep -q "gh-panel-push-button" release/payload/panel-push-ui-1/web/gohouse-push.js
+          grep -q "Notificaciones activas" release/payload/panel-push-ui-1/web/gohouse-push.js
+          grep -q "Recibirás nuevos pedidos, mensajes de clientes y comprobantes" release/payload/panel-push-ui-1/web/gohouse-push.js
+          grep -q "showNotification" release/payload/panel-push-ui-1/web/gohouse-push.js
+          grep -q "gohouse-push.js?v=20260919.36" release/payload/panel-push-ui-1/web/gohouse-branding.js
