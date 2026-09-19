@@ -1,12 +1,12 @@
 {
-  "version": "2026.09.19-white-label.41",
-  "published_at": "2026-09-19T16:42:00Z",
+  "version": "2026.09.19-white-label.42",
+  "published_at": "2026-09-19T16:47:00Z",
   "status": "release",
   "files": [
     {
       "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/3ed611480f5623f09acc7ca162a93433477c1542/release/payload/publicidad-server-media-1/server/src/server.js",
-      "sha256": "d1e0e7763befbe5e18da1ef7bdf12ce723be5824f022b0f7c9d90f0a7c6740a2"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/bfcf9600a0678453b15efb331abeac0fc44ed0af/release/payload/publicidad-db-media-final-1/server/src/server.js",
+      "sha256": "4228b14a1284f8bf9ae0a0b757123fc31e8eaa6a262de74a17ee0ef62cf04a6d"
     }
   ],
   "delete": [],
