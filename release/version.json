@@ -1,17 +1,12 @@
 {
-  "version": "2026.09.19-white-label.36",
-  "published_at": "2026-09-19T16:05:00Z",
+  "version": "2026.09.19-white-label.37",
+  "published_at": "2026-09-19T16:20:00Z",
   "status": "release",
   "files": [
     {
-      "path": "web/gohouse-push.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/add2572a3e5dd070a3a7dfc0fbf19ada363c7df6/release/payload/panel-push-ui-1/web/gohouse-push.js",
-      "sha256": "62e200cf6978d7f8305534f2f74f4b376844172668f6bc39a51a86ff4971051b"
-    },
-    {
-      "path": "web/gohouse-branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/add2572a3e5dd070a3a7dfc0fbf19ada363c7df6/release/payload/panel-push-ui-1/web/gohouse-branding.js",
-      "sha256": "3a04111f67015a804154249b68cbce403a5d605280b4cf3bdc67ff880094a14a"
+      "path": "server/src/server.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/57e913ebfc10be5e28ad596c97c6497168084feb/release/payload/publicidad-upload-fix-1/server/src/server.js",
+      "sha256": "06b427a25d7d03f7574a8cfe41e5b60d401280a3f016a68e752cbf771214d0a7"
     }
   ],
   "delete": [],
