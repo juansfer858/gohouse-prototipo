@@ -25,3 +25,11 @@ jobs:
             head -c 500 /tmp/b 2>/dev/null || true
             echo
           done
+          echo "=== CORE JS ==="
+          for p in /gohouse-branding.js /gohouse-vps-adapter.js /gohouse-app-shell.js /gohouse-push.js /gohouse-publicidad.js; do
+            name=$(basename "$p")
+            curl -fsS --max-time 15 "$BASE$p?emergency=$(date +%s)" -o "/tmp/$name"
+            echo "$p bytes=$(wc -c < "/tmp/$name")"
+            node --check "/tmp/$name"
+          done
+          echo "CORE_JS_OK"
