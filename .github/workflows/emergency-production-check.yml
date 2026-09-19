@@ -1,0 +1,27 @@
+name: Emergency production check
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/emergency-production-check.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check production endpoints
+        run: |
+          set +e
+          BASE=https://domicilios-llanos.vantixgc.com
+          echo "=== DNS ==="
+          getent ahosts domicilios-llanos.vantixgc.com || true
+          for p in / /panel/ /api/health /gohouse-cliente.html; do
+            echo "=== $p ==="
+            curl -L --connect-timeout 8 --max-time 15 -sS -D /tmp/h -o /tmp/b -w "HTTP=%{http_code} TIME=%{time_total}\n" "$BASE$p"
+            rc=$?
+            echo "curl_rc=$rc"
+            head -20 /tmp/h 2>/dev/null || true
+            head -c 500 /tmp/b 2>/dev/null || true
+            echo
+          done
