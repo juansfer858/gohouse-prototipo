@@ -1,0 +1,21 @@
+name: Validate publicidad upload fix v37
+on:
+  push:
+    branches: ['fix/publicidad-upload-path-20260919']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and upload contract
+        run: |
+          node --check release/payload/publicidad-upload-fix-1/server/src/server.js
+          grep -q "GOHOUSE_UPLOAD_DIR" release/payload/publicidad-upload-fix-1/server/src/server.js
+          grep -q "/opt/gohouse/web/uploads" release/payload/publicidad-upload-fix-1/server/src/server.js
+          grep -q "GOHOUSE_MAX_UPLOAD_MB" release/payload/publicidad-upload-fix-1/server/src/server.js
+          grep -q "uploadMode:'safe-web-uploads-v37'" release/payload/publicidad-upload-fix-1/server/src/server.js
+          ! grep -q "fs.mkdir(config.uploadDir" release/payload/publicidad-upload-fix-1/server/src/server.js
+          ! grep -q "path.join(config.uploadDir" release/payload/publicidad-upload-fix-1/server/src/server.js
