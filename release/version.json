@@ -1,20 +1,14 @@
 {
-  "version": "2026.09.19-white-label.40",
-  "published_at": "2026-09-19T16:35:00Z",
+  "version": "2026.09.19-white-label.41",
+  "published_at": "2026-09-19T16:42:00Z",
   "status": "release",
   "files": [
     {
       "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/ac07fce4e3aaf03d5d8909cda3af85d63e30e413/release/payload/publicidad-db-media-1/server/src/server.js",
-      "sha256": "638f50a51be282670289533fd0261a5ba0c647798b05f998e9957b0e5657a334"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/3ed611480f5623f09acc7ca162a93433477c1542/release/payload/publicidad-server-media-1/server/src/server.js",
+      "sha256": "d1e0e7763befbe5e18da1ef7bdf12ce723be5824f022b0f7c9d90f0a7c6740a2"
     }
   ],
   "delete": [],
-  "migrations": [
-    {
-      "path": "migrations/010_media_assets.sql",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/ac07fce4e3aaf03d5d8909cda3af85d63e30e413/release/payload/publicidad-db-media-1/migrations/010_media_assets.sql",
-      "sha256": "09ca2452db270dfd3fb95a16c360940577c8a1db61e4882534014bd20c982b32"
-    }
-  ]
+  "migrations": []
 }
