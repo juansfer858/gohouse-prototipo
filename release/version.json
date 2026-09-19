@@ -1,14 +1,35 @@
 {
-  "version": "2026.09.19-white-label.34",
-  "published_at": "2026-09-19T15:20:00Z",
+  "version": "2026.09.19-white-label.35",
+  "published_at": "2026-09-19T15:35:00Z",
   "status": "release",
   "files": [
     {
+      "path": "server/src/server.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/server/src/server.js",
+      "sha256": "7458064348362f60e1b773fab3e4da5a9500319f405dde581f4be1c6a0b9a583"
+    },
+    {
+      "path": "server/src/client-mail.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/server/src/client-mail.js",
+      "sha256": "e41f8e64808d071a5e82a7be7f1f036994f06a0760e81b9f76780303732330de"
+    },
+    {
       "path": "web/gohouse-mail-config.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a6d9fbe617d42ce414881398da6b4db9d3beacee/release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js",
-      "sha256": "b40580aa6b3c32412733f4a85a90d665ff4e2d30d9196346061f12f1b6422fdc"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/web/gohouse-mail-config.js",
+      "sha256": "c701c9e4dc158977c6ae5a648bc4971472da7e6b830661d32dccfb8ed50edb77"
+    },
+    {
+      "path": "web/panel/index.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/web/panel/index.html",
+      "sha256": "f585cb602898372cfaf72e7f9c4ef5d82990172a38769ab352b997509241cf11"
     }
   ],
   "delete": [],
-  "migrations": []
+  "migrations": [
+    {
+      "path": "migrations/009_recovery_mail_settings.sql",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/migrations/009_recovery_mail_settings.sql",
+      "sha256": "e3c9f9cf66234a0f254f109d573d7d212b9521390e0b57b3028595a546c1f057"
+    }
+  ]
 }
