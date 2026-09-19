@@ -1,0 +1,19 @@
+name: Validate recovery mail dedupe
+on:
+  push:
+    branches: ['fix/mail-config-dedupe-20260919']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and dedupe contract
+        run: |
+          node --check release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js
+          grep -q "let mounting=false" release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js
+          grep -q "function dedupeCards" release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js
+          grep -q "if(mounting)return" release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js
+          grep -q "Comprobamos de nuevo después del await" release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js

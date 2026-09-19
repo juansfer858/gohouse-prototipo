@@ -1,22 +1,12 @@
 {
-  "version": "2026.09.18-white-label.33",
-  "published_at": "2026-09-19T02:18:00Z",
+  "version": "2026.09.19-white-label.34",
+  "published_at": "2026-09-19T15:20:00Z",
   "status": "release",
   "files": [
     {
-      "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/630773f3095372e38f640e61e099f6d3706a343d/release/payload/simple-driver-code-1/server/src/server.js",
-      "sha256": "9c985dea5c9088b1e5daa8cea8a4e224745e9bb441530c121267a9dc45bb50b3"
-    },
-    {
-      "path": "web/gohouse-driver-codes.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/630773f3095372e38f640e61e099f6d3706a343d/release/payload/simple-driver-code-1/web/gohouse-driver-codes.js",
-      "sha256": "91f69b89f0c0ead789818c2a43e5cf109e2a6e8d4a100d7d2103e5a3a1b95ac6"
-    },
-    {
-      "path": "web/gohouse-branding.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/630773f3095372e38f640e61e099f6d3706a343d/release/payload/simple-driver-code-1/web/gohouse-branding.js",
-      "sha256": "3818d92d79b752d18ea6258209ca9eee8bde4e5237b0b261bb787c2ff8d69cf2"
+      "path": "web/gohouse-mail-config.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a6d9fbe617d42ce414881398da6b4db9d3beacee/release/payload/mail-config-dedupe-1/web/gohouse-mail-config.js",
+      "sha256": "b40580aa6b3c32412733f4a85a90d665ff4e2d30d9196346061f12f1b6422fdc"
     }
   ],
   "delete": [],
