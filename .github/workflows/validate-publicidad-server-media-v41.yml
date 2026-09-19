@@ -1,0 +1,20 @@
+name: Validate publicidad server media v41
+on:
+  push:
+    branches: ['fix/publicidad-server-media-20260919']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and storage contract
+        run: |
+          node --check release/payload/publicidad-server-media-1/server/src/server.js
+          grep -q "const SERVER_UPLOAD_DIR='/opt/gohouse/server/uploads'" release/payload/publicidad-server-media-1/server/src/server.js
+          grep -q "uploadMode:'server-private-media-v41'" release/payload/publicidad-server-media-1/server/src/server.js
+          grep -q "/api/public/uploads/" release/payload/publicidad-server-media-1/server/src/server.js
+          ! grep -q "/opt/gohouse/web/uploads" release/payload/publicidad-server-media-1/server/src/server.js
+          ! grep -q "config.uploadDir" release/payload/publicidad-server-media-1/server/src/server.js
