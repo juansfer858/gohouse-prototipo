@@ -1,0 +1,35 @@
+name: Verify panel freeze fix v38
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/verify-panel-freeze-v38.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify v38 in production without writes
+        run: |
+          set -euo pipefail
+          BASE=https://domicilios-llanos.vantixgc.com
+          for i in $(seq 1 36); do
+            curl -fsS "$BASE/gohouse-push.js?release=20260919.38" -o /tmp/push.js || true
+            curl -fsS "$BASE/gohouse-branding.js?release=20260919.38" -o /tmp/branding.js || true
+            curl -fsS "$BASE/api/health" -o /tmp/health.json || true
+            if grep -q "if(btn.textContent!==label)" /tmp/push.js 2>/dev/null && grep -q "gohouse-push.js?v=20260919.38" /tmp/branding.js 2>/dev/null; then break; fi
+            sleep 5
+          done
+          node --check /tmp/push.js
+          node --check /tmp/branding.js
+          grep -q "if(btn.textContent!==label)" /tmp/push.js
+          grep -q "if(!\$('gh-panel-push-button')) ensurePanelButton();" /tmp/push.js
+          ! grep -q "MutationObserver(()=>ensurePanelButton())" /tmp/push.js
+          grep -q "gohouse-push.js?v=20260919.38" /tmp/branding.js
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          assert h.get('ok') is True and h.get('db') is True, h
+          print('PASS: v38 freeze fix published; health/db OK; writes=0')
+          PY
