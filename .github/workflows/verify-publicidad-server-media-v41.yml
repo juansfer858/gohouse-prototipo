@@ -1,0 +1,43 @@
+name: Verify publicidad server media v41
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/verify-publicidad-server-media-v41.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify v41 in production without writes
+        run: |
+          set -euo pipefail
+          BASE=https://domicilios-llanos.vantixgc.com
+          for i in $(seq 1 36); do
+            curl -fsS "$BASE/api/health" -o /tmp/health.json || true
+            if python3 - <<'PY'
+          import json,sys
+          try:
+            h=json.load(open('/tmp/health.json'))
+            ok=h.get('uploadMode')=='server-private-media-v41' and h.get('uploadStorageReady') is True
+            sys.exit(0 if ok else 1)
+          except Exception:
+            sys.exit(1)
+          PY
+            then break; fi
+            sleep 5
+          done
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          assert h.get('ok') is True and h.get('db') is True,h
+          assert h.get('uploadMode')=='server-private-media-v41',h
+          assert h.get('uploadStorageReady') is True,h
+          print('health',h)
+          PY
+          media_code=$(curl -sS -o /tmp/media404 -w "%{http_code}" "$BASE/api/public/uploads/0-not-real.jpg")
+          test "$media_code" = "404"
+          upload_code=$(curl -sS -o /tmp/upload401 -w "%{http_code}" -X POST "$BASE/api/upload-data-url" -H 'Content-Type: application/json' --data '{"dataUrl":"data:image/png;base64,iVBORw0KGgo="}')
+          test "$upload_code" = "401"
+          echo "PASS: v41 running; server upload root writable; routes OK; writes=0"
