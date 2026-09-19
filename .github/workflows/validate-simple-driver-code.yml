@@ -1,0 +1,23 @@
+name: Validate simple driver code
+on:
+  push:
+    branches: ['fix/simple-driver-code-20260918']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and contract
+        run: |
+          node --check release/payload/simple-driver-code-1/server/src/server.js
+          node --check release/payload/simple-driver-code-1/web/gohouse-driver-codes.js
+          node --check release/payload/simple-driver-code-1/web/gohouse-branding.js
+          grep -q "await setDriverPin(driverId,pin)" release/payload/simple-driver-code-1/server/src/server.js
+          grep -q "driverCodeMode:'admin-set-v33'" release/payload/simple-driver-code-1/server/src/server.js
+          grep -q "Asignar código a" release/payload/simple-driver-code-1/web/gohouse-driver-codes.js
+          grep -q "No necesitas conocer el código anterior" release/payload/simple-driver-code-1/web/gohouse-driver-codes.js
+          ! grep -q "Verificar y guardar" release/payload/simple-driver-code-1/web/gohouse-driver-codes.js
+          ! grep -q "await loginDriver(driverId,pin)" release/payload/simple-driver-code-1/server/src/server.js
