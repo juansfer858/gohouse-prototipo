@@ -1,0 +1,24 @@
+name: Verify recovery mail dedupe v34
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/verify-mail-dedupe-v34.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify published runtime without writes
+        run: |
+          set -euo pipefail
+          BASE=https://domicilios-llanos.vantixgc.com
+          for i in $(seq 1 30); do
+            if curl -fsS "$BASE/gohouse-mail-config.js?release=20260919.34" -o /tmp/mail.js && grep -q "function dedupeCards" /tmp/mail.js && grep -q "let mounting=false" /tmp/mail.js; then break; fi
+            sleep 5
+          done
+          node --check /tmp/mail.js
+          grep -q "if(mounting)return" /tmp/mail.js
+          grep -q "dedupeCards();mount();" /tmp/mail.js
+          echo "PASS: v34 recovery mail dedupe published; writes=0"
