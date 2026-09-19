@@ -1,35 +1,19 @@
 {
-  "version": "2026.09.19-white-label.35",
-  "published_at": "2026-09-19T15:35:00Z",
+  "version": "2026.09.19-white-label.36",
+  "published_at": "2026-09-19T16:05:00Z",
   "status": "release",
   "files": [
     {
-      "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/server/src/server.js",
-      "sha256": "7458064348362f60e1b773fab3e4da5a9500319f405dde581f4be1c6a0b9a583"
+      "path": "web/gohouse-push.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/add2572a3e5dd070a3a7dfc0fbf19ada363c7df6/release/payload/panel-push-ui-1/web/gohouse-push.js",
+      "sha256": "62e200cf6978d7f8305534f2f74f4b376844172668f6bc39a51a86ff4971051b"
     },
     {
-      "path": "server/src/client-mail.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/server/src/client-mail.js",
-      "sha256": "e41f8e64808d071a5e82a7be7f1f036994f06a0760e81b9f76780303732330de"
-    },
-    {
-      "path": "web/gohouse-mail-config.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/web/gohouse-mail-config.js",
-      "sha256": "c701c9e4dc158977c6ae5a648bc4971472da7e6b830661d32dccfb8ed50edb77"
-    },
-    {
-      "path": "web/panel/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/web/panel/index.html",
-      "sha256": "f585cb602898372cfaf72e7f9c4ef5d82990172a38769ab352b997509241cf11"
+      "path": "web/gohouse-branding.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/add2572a3e5dd070a3a7dfc0fbf19ada363c7df6/release/payload/panel-push-ui-1/web/gohouse-branding.js",
+      "sha256": "3a04111f67015a804154249b68cbce403a5d605280b4cf3bdc67ff880094a14a"
     }
   ],
   "delete": [],
-  "migrations": [
-    {
-      "path": "migrations/009_recovery_mail_settings.sql",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/132dda1e417bb5913f674cdf3554fc32c24db855/release/payload/gmail-recovery-1/migrations/009_recovery_mail_settings.sql",
-      "sha256": "e3c9f9cf66234a0f254f109d573d7d212b9521390e0b57b3028595a546c1f057"
-    }
-  ]
+  "migrations": []
 }
