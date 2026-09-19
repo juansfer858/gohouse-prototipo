@@ -1,0 +1,39 @@
+name: Verify publicidad upload v37
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/verify-publicidad-upload-v37.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify published v37 without writes
+        run: |
+          set -euo pipefail
+          BASE=https://domicilios-llanos.vantixgc.com
+          for i in $(seq 1 36); do
+            curl -fsS "$BASE/api/health" -o /tmp/health.json || true
+            if python3 - <<'PY'
+          import json,sys
+          try:
+            h=json.load(open('/tmp/health.json'))
+            sys.exit(0 if h.get('uploadMode')=='safe-web-uploads-v37' else 1)
+          except Exception:
+            sys.exit(1)
+          PY
+            then break; fi
+            sleep 5
+          done
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          assert h.get('ok') is True and h.get('db') is True, h
+          assert h.get('uploadMode')=='safe-web-uploads-v37', h
+          print('health',h)
+          PY
+          code=$(curl -sS -o /tmp/upload.json -w "%{http_code}" -X POST "$BASE/api/upload-data-url" -H 'Content-Type: application/json' --data '{"dataUrl":"data:image/png;base64,iVBORw0KGgo="}')
+          test "$code" = "401"
+          echo "PASS: v37 server running; upload endpoint protected; writes=0"
