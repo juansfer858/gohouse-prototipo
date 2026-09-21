@@ -1,0 +1,35 @@
+name: Verify panel cancel order v44
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/verify-panel-cancel-v44.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Verify published v44 without writes
+        run: |
+          set -euo pipefail
+          BASE=https://domicilios-llanos.vantixgc.com
+          for i in $(seq 1 48); do
+            curl -fsS "$BASE/gohouse-panel.html?release=20260921.44" -o /tmp/panel.html || true
+            if grep -q "async function cancelarPedidoPanel(orderId)" /tmp/panel.html 2>/dev/null               && grep -q "orden.cancelledBy = 'panel'" /tmp/panel.html 2>/dev/null; then
+              break
+            fi
+            sleep 5
+          done
+          grep -q "async function cancelarPedidoPanel(orderId)" /tmp/panel.html
+          grep -q "Cancelar pedido" /tmp/panel.html
+          grep -q "o.estado !== 'cancelado'" /tmp/panel.html
+          grep -q "orden.estado = 'cancelado'" /tmp/panel.html
+          grep -q "orden.cancelledAt = Date.now()" /tmp/panel.html
+          curl -fsS "$BASE/api/health" -o /tmp/health.json
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          assert h.get('ok') is True and h.get('db') is True,h
+          print('PASS: v44 panel cancel action published; health/db OK; writes=0')
+          PY
