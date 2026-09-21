@@ -1,12 +1,12 @@
 {
-  "version": "2026.09.21-white-label.44",
-  "published_at": "2026-09-21T16:38:00Z",
+  "version": "2026.09.21-white-label.45",
+  "published_at": "2026-09-21T16:50:00Z",
   "status": "release",
   "files": [
     {
       "path": "web/gohouse-panel.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/a5ecabaf757e1af90ec6f26966f3167ffe2a6fdd/release/payload/panel-cancel-order-1/web/gohouse-panel.html",
-      "sha256": "fbcc1e7a70653a940a6f05699d2322c6a4f4d58b088e688b83baccb23a993f16"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0dc0d555f8eced21110f266988003fd1b7b8f4da/release/payload/panel-v45/web/gohouse-panel.html",
+      "sha256": "fe1bb1307db1cb785f3027a227bb299d5aa6160e62dc152e40a5fb4395856d34"
     }
   ],
   "delete": [],
