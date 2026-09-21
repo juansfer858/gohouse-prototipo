@@ -1,0 +1,29 @@
+name: Validate panel ops v43
+on:
+  push:
+    branches: ['feat/panel-ops-fleet-payments-references-20260921']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: |
+          node --check release/payload/panel-ops-1/web/gohouse-branding.js
+          node --check release/payload/panel-ops-1/web/gohouse-panel-ops.js
+          node --check release/payload/panel-ops-1/web/gohouse-fleet-panel.js
+          node --check release/payload/panel-ops-1/web/gohouse-fleet-driver.js
+      - name: Contracts
+        run: |
+          grep -q "gohouse-fleet-panel.js?v=20260921.43" release/payload/panel-ops-1/web/gohouse-branding.js
+          grep -q "gohouse-fleet-driver.js?v=20260921.43" release/payload/panel-ops-1/web/gohouse-branding.js
+          grep -q "gohouse-panel-ops.js?v=20260921.43" release/payload/panel-ops-1/web/gohouse-branding.js
+          grep -q "cfg.nequiNumber" release/payload/panel-ops-1/web/gohouse-panel-ops.js
+          grep -q "cfg.daviplataNumber" release/payload/panel-ops-1/web/gohouse-panel-ops.js
+          grep -q "cfg.bankName" release/payload/panel-ops-1/web/gohouse-panel-ops.js
+          grep -q "gh-order-references-field" release/payload/panel-ops-1/web/gohouse-panel-ops.js
+          grep -q "/api/public/tarifas" release/payload/panel-ops-1/web/gohouse-panel-ops.js
+          grep -q "Flota en vivo" release/payload/panel-ops-1/web/gohouse-fleet-panel.js
