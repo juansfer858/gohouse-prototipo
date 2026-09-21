@@ -1,0 +1,35 @@
+name: Validate panel v45
+on:
+  push:
+    branches: ['fix/restore-panel-and-cancel-v45']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Panel contract
+        run: |
+          FILE=release/payload/panel-v45/web/gohouse-panel.html
+          grep -q "gohouse-vps-adapter.js" "$FILE"
+          grep -q "gohouse-branding.js" "$FILE"
+          ! grep -q "firebasejs" "$FILE"
+          grep -q "async function cancelarPedidoPanel(orderId)" "$FILE"
+          grep -q "Cancelar pedido" "$FILE"
+          grep -q "o.estado !== 'cancelado'" "$FILE"
+          grep -q "canceladoAt = Date.now()" "$FILE"
+          grep -q "canceladoEnEstado = estadoAnterior" "$FILE"
+      - name: Inline script syntax
+        run: |
+          python3 - <<'PY'
+          import re,pathlib
+          html=pathlib.Path('release/payload/panel-v45/web/gohouse-panel.html').read_text()
+          scripts=[]
+          for attrs,body in re.findall(r'<script([^>]*)>([\s\S]*?)</script>',html,re.I):
+              if 'src=' not in attrs.lower():
+                  scripts.append(body)
+          pathlib.Path('/tmp/panel-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/panel-inline.js
