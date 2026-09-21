@@ -1,0 +1,36 @@
+name: Validate panel cancel order v44
+on:
+  push:
+    branches: ['feat/panel-cancel-order-20260921']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract checks
+        run: |
+          FILE=release/payload/panel-cancel-order-1/web/gohouse-panel.html
+          grep -q "async function cancelarPedidoPanel(orderId)" "$FILE"
+          grep -q "o.estado !== 'cancelado'" "$FILE"
+          grep -q "orden.estado = 'cancelado'" "$FILE"
+          grep -q "orden.cancelledAt = Date.now()" "$FILE"
+          grep -q "orden.cancelledBy = 'panel'" "$FILE"
+          grep -q "Cancelar pedido" "$FILE"
+          grep -q "tieneOtroActivo" "$FILE"
+          grep -q "if(!tieneOtroActivo) rep.estado = 'disponible'" "$FILE"
+          grep -q "window.confirm" "$FILE"
+      - name: Inline script syntax
+        run: |
+          python3 - <<'PY'
+          import re,pathlib
+          html=pathlib.Path('release/payload/panel-cancel-order-1/web/gohouse-panel.html').read_text()
+          scripts=[]
+          for attrs,body in re.findall(r'<script([^>]*)>([\s\S]*?)</script>',html,re.I):
+              if 'src=' not in attrs.lower():
+                  scripts.append(body)
+          pathlib.Path('/tmp/panel-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/panel-inline.js
