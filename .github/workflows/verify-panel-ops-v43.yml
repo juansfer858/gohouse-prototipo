@@ -1,0 +1,60 @@
+name: Verify panel ops v43
+on:
+  push:
+    branches: [gohouse-vps-recovery]
+    paths: ['.github/workflows/verify-panel-ops-v43.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Verify published v43 without writes
+        run: |
+          set -euo pipefail
+          BASE=https://domicilios-llanos.vantixgc.com
+          for i in $(seq 1 48); do
+            curl -fsS "$BASE/gohouse-branding.js?release=20260921.43" -o /tmp/branding.js || true
+            curl -fsS "$BASE/gohouse-panel-ops.js?release=20260921.43" -o /tmp/ops.js || true
+            curl -fsS "$BASE/gohouse-fleet-panel.js?release=20260921.43" -o /tmp/fleet-panel.js || true
+            curl -fsS "$BASE/gohouse-fleet-driver.js?release=20260921.43" -o /tmp/fleet-driver.js || true
+            if grep -q "gohouse-panel-ops.js?v=20260921.43" /tmp/branding.js 2>/dev/null               && grep -q "gh-order-references-field" /tmp/ops.js 2>/dev/null               && grep -q "tab-flota" /tmp/fleet-panel.js 2>/dev/null; then
+              break
+            fi
+            sleep 5
+          done
+          node --check /tmp/branding.js
+          node --check /tmp/ops.js
+          node --check /tmp/fleet-panel.js
+          node --check /tmp/fleet-driver.js
+          grep -q "gohouse-fleet-panel.js?v=20260921.43" /tmp/branding.js
+          grep -q "gohouse-fleet-driver.js?v=20260921.43" /tmp/branding.js
+          grep -q "gohouse-panel-ops.js?v=20260921.43" /tmp/branding.js
+          grep -q "cfg.nequiNumber" /tmp/ops.js
+          grep -q "cfg.daviplataNumber" /tmp/ops.js
+          grep -q "cfg.bankName" /tmp/ops.js
+          grep -q "/api/public/tarifas" /tmp/ops.js
+          grep -q "Flota en vivo" /tmp/fleet-panel.js
+          curl -fsS "$BASE/api/public/config" -o /tmp/config.json
+          curl -fsS "$BASE/api/public/tarifas" -o /tmp/tarifas.json
+          curl -fsS "$BASE/api/health" -o /tmp/health.json
+          python3 - <<'PY'
+          import json
+          cfg=json.load(open('/tmp/config.json'))
+          tariffs=json.load(open('/tmp/tarifas.json'))
+          health=json.load(open('/tmp/health.json'))
+          assert health.get('ok') is True and health.get('db') is True and health.get('fleet') is True, health
+          assert isinstance(tariffs.get('zones'),list) and len(tariffs['zones'])>=1, tariffs
+          assert str(cfg.get('bankName','')).strip() or str(cfg.get('nequiNumber','')).strip() or str(cfg.get('daviplataNumber','')).strip(), cfg
+          print(json.dumps({
+            'deploymentVerified': True,
+            'brandName': cfg.get('brandName'),
+            'bankName': cfg.get('bankName'),
+            'nequiConfigured': bool(str(cfg.get('nequiNumber','')).strip()),
+            'daviplataConfigured': bool(str(cfg.get('daviplataNumber','')).strip()),
+            'activeReferences': len(tariffs['zones']),
+            'fleetBackend': health.get('fleet'),
+            'writesPerformed': 0
+          },ensure_ascii=False))
+          PY
