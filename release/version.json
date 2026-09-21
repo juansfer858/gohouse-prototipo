@@ -1,12 +1,27 @@
 {
-  "version": "2026.09.19-white-label.42",
-  "published_at": "2026-09-19T16:47:00Z",
+  "version": "2026.09.21-white-label.43",
+  "published_at": "2026-09-21T16:30:00Z",
   "status": "release",
   "files": [
     {
-      "path": "server/src/server.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/bfcf9600a0678453b15efb331abeac0fc44ed0af/release/payload/publicidad-db-media-final-1/server/src/server.js",
-      "sha256": "4228b14a1284f8bf9ae0a0b757123fc31e8eaa6a262de74a17ee0ef62cf04a6d"
+      "path": "web/gohouse-branding.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/6a7400b7c7577f709088868cb8771a2d7cc24ae5/release/payload/panel-ops-1/web/gohouse-branding.js",
+      "sha256": "d43b8839e31fb82d61f0927651703ca8fb672e233757a0070dc8e1d733b67576"
+    },
+    {
+      "path": "web/gohouse-panel-ops.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/6a7400b7c7577f709088868cb8771a2d7cc24ae5/release/payload/panel-ops-1/web/gohouse-panel-ops.js",
+      "sha256": "c617d1693c42a338dd7cc9779225937a211a0bc927d3f13afd699dad9f63810b"
+    },
+    {
+      "path": "web/gohouse-fleet-panel.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/6a7400b7c7577f709088868cb8771a2d7cc24ae5/release/payload/panel-ops-1/web/gohouse-fleet-panel.js",
+      "sha256": "bc64a25c8ec24ebc4afc027e7bf566918865d7962d259b08ca9e9faf5365bf96"
+    },
+    {
+      "path": "web/gohouse-fleet-driver.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/6a7400b7c7577f709088868cb8771a2d7cc24ae5/release/payload/panel-ops-1/web/gohouse-fleet-driver.js",
+      "sha256": "2b27055d87ba89d3e13fb347f9791808f4a1be80b89bee5b17f5aa7689f49d6c"
     }
   ],
   "delete": [],
