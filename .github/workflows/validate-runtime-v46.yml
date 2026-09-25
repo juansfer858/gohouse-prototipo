@@ -1,0 +1,41 @@
+name: Validate runtime stability and brand v46
+on:
+  push:
+    branches: ['fix/panel-retry-client-brand-20260925']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Runtime contracts
+        run: |
+          CLIENT=release/payload/runtime-stability-brand-1/web/gohouse-cliente.html
+          WRAP=release/payload/runtime-stability-brand-1/web/panel/index.html
+          grep -q "function nombreEmpresaActual()" "$CLIENT"
+          grep -q 'Mi domicilio de ${nombreEmpresaActual()}' "$CLIENT"
+          ! grep -q 'Mi domicilio de GoHouse' "$CLIENT"
+          ! grep -q "🏠 GoHouse:" "$CLIENT"
+          grep -q "attempt<=4" "$WRAP"
+          grep -q "AbortController" "$WRAP"
+          grep -q "loader=20260925.46" "$WRAP"
+          grep -q ">Reintentar<" "$WRAP"
+      - name: Inline JS syntax
+        run: |
+          python3 - <<'PY'
+          import re,pathlib
+          for src,out in [
+            ('release/payload/runtime-stability-brand-1/web/gohouse-cliente.html','/tmp/client.js'),
+            ('release/payload/runtime-stability-brand-1/web/panel/index.html','/tmp/wrapper.js')
+          ]:
+            html=pathlib.Path(src).read_text()
+            scripts=[]
+            for attrs,body in re.findall(r'<script([^>]*)>([\s\S]*?)</script>',html,re.I):
+              if 'src=' not in attrs.lower():
+                scripts.append(body)
+            pathlib.Path(out).write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/client.js
+          node --check /tmp/wrapper.js
