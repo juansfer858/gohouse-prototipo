@@ -1,19 +1,50 @@
 {
-  "version": "2026.09.25-white-label.46",
-  "published_at": "2026-09-25T23:30:00Z",
+  "version": "2026.09.30-white-label.47",
+  "published_at": "2026-09-30T15:47:13.421406+00:00",
   "status": "release",
   "files": [
     {
-      "path": "web/gohouse-cliente.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/808c52adceb7c8b1315d4d2f2438cb8c5a545ee9/release/payload/runtime-stability-brand-1/web/gohouse-cliente.html",
-      "sha256": "680cd8e63ec31d736cb171d7cc7e217d34c3ade60cc38115483021ab5b49670c"
+      "path": "server/src/server.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/server/src/server.js",
+      "sha256": "b9696cd61d297c3b62d3753a5933da5ddcf29c2dc45603a3635fc8f5b73a5b3e"
     },
     {
-      "path": "web/panel/index.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/808c52adceb7c8b1315d4d2f2438cb8c5a545ee9/release/payload/runtime-stability-brand-1/web/panel/index.html",
-      "sha256": "2030e5dfea6bf5c4138f35d0d34db4197fedbf59287c48e4a3798b0e7f01cc03"
+      "path": "server/src/reports.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/server/src/reports.js",
+      "sha256": "3a640da98d76dc6295cd22459d55343494f47117dc5a7f10d7efb2e90bb684c8"
+    },
+    {
+      "path": "web/gohouse-panel.html",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/web/gohouse-panel.html",
+      "sha256": "4c2f16865e8f517e4042e61c8588791fbf9a623375b12ac577c9afb041d24fdf"
+    },
+    {
+      "path": "web/llanos-reports.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/web/llanos-reports.js",
+      "sha256": "26d5cad2cc5450d5f665ab1aa95aecc408f6bcaa023ad98aa7f1cb7330eab004"
+    },
+    {
+      "path": "web/llanos-report-excel.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/web/llanos-report-excel.js",
+      "sha256": "f27d91bc5082f06cbf03f05e225917160c39346b60c682814caee119e9cbe067"
+    },
+    {
+      "path": "web/llanos-exceljs-4.4.0.min.js",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/web/llanos-exceljs-4.4.0.min.js",
+      "sha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9"
+    },
+    {
+      "path": "web/llanos-exceljs-4.4.0.LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/web/llanos-exceljs-4.4.0.LICENSE.txt",
+      "sha256": "2ed526b7e7c7681dc2347995b5036ddf73dc27d0539cdea59b6d4a72b63a57a0"
     }
   ],
   "delete": [],
-  "migrations": []
+  "migrations": [
+    {
+      "path": "migrations/011_employee_settlements.sql",
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/4ec95f07b63f84b87fe0c269cd45b86012c52b2b/release/payload/reports-1/migrations/011_employee_settlements.sql",
+      "sha256": "b9717177c0443610d6f82fc8048f90fa0284121205b7c6bd0a7fb5b93d354f90"
+    }
+  ]
 }
