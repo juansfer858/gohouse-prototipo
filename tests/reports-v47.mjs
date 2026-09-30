@@ -80,11 +80,17 @@ check(!stored['gohouse-data'].orders.find(o => o.id === 'other').liquidado, 'No 
 check(stored['gohouse-data'].orders.find(o => o.id === 'legacy').liquidado, 'Historic flag preserved');
 report = await readReport(pool, admin, f);
 check(report.summary.pendingAmount === 0 && report.summary.settledAmount === 14000, 'Fully reconciled report after payment');
-// Ledger remains authoritative if a stale legacy client writes liquidado=false.
 const stale = structuredClone(stored); stale['gohouse-data'].orders.find(o => o.id === 'start').liquidado = false;
 await pool.query('UPDATE app_state SET data=$1 WHERE id=1', [JSON.stringify(stale)]);
 check((await readReport(pool, admin, f)).summary.pendingAmount === 0, 'Stale legacy snapshot cannot repay a ledger item');
 await rejected(() => settleEmployee(pool, admin, { ...winner, requestKey: randomUUID() }), 'REPORT_CHANGED');
+const removed = structuredClone(stale);
+removed['gohouse-data'].repartidores = removed['gohouse-data'].repartidores.filter(e => e.id !== 'a');
+removed['gohouse-data'].orders = removed['gohouse-data'].orders.filter(o => o.id !== 'start');
+await pool.query('UPDATE app_state SET data=$1 WHERE id=1', [JSON.stringify(removed)]);
+const history = await readReport(pool, admin, f);
+check(history.rows.some(r => r.id === 'start' && r.employee === 'Empleado A <&>' && r.settled), 'Snapshot survives employee and order removal');
+await pool.query('UPDATE app_state SET data=$1 WHERE id=1', [JSON.stringify(stale)]);
 const unassigned = buildReport({ 'gohouse-data': { orders: [{ ...fixture['gohouse-data'].orders[0], repartidorId: null }] } }, { ...f, employeeId: '' });
 check(!unassigned.canSettleSelection, 'No payout without employee');
 const empty = await readReport(pool, admin, { from: '2025-01-01', to: '2025-01-02', employeeId: '' });
@@ -94,13 +100,14 @@ await wb.xlsx.writeFile(path.join(outDir, 'demo-liquidacion.xlsx'));
 const reloaded = new ExcelJS.Workbook(); await reloaded.xlsx.readFile(path.join(outDir, 'demo-liquidacion.xlsx'));
 check(reloaded.worksheets.length === 6, 'Six workbook sheets');
 check(reloaded.worksheets[0].name === 'Resumen', 'Workbook starts with summary');
-check(reloaded.getWorksheet('Servicios').getCell('E6').type === ExcelJS.ValueType.String, 'Untrusted text never becomes an Excel formula');
-check(reloaded.getWorksheet('Servicios').getCell('E6').value === '=SUM(1,2)', 'Formula-looking client name preserved as literal');
+const literalCells = [];
+reloaded.getWorksheet('Servicios').getColumn(5).eachCell((cell, row) => { if (row >= 6 && cell.value === '=SUM(1,2)') literalCells.push(cell); });
+check(literalCells.length === 4, 'All four formula-looking client names preserved as literal text');
+check(literalCells.every(cell => cell.type === ExcelJS.ValueType.String), 'Untrusted text never becomes an Excel formula');
 check(reloaded.getWorksheet('Resumen').getCell('B15').result === 9100, 'XLSX pending total matches UI/server');
 check(reloaded.getWorksheet('Servicios').views[0].ySplit === 5, 'Frozen headers');
 check(reloaded.getWorksheet('Servicios').getCell('B6').value instanceof Date, 'Real Excel dates');
 const blankBook = globalThis.LlanosReportExcel.build(ExcelJS, empty); await blankBook.xlsx.writeBuffer(); assertions++;
-// End-to-end browser against isolated DB and real routes. No production accounts or records.
 const app = express(); app.use(express.json());
 const authMiddleware = () => (req, res, next) => {
   const token = String(req.headers.authorization || '').replace('Bearer ', '');
@@ -122,7 +129,7 @@ try {
   await page.fill('#lr-from', f.from); await page.fill('#lr-to', f.to); await page.selectOption('#lr-employee', 'a');
   await page.waitForFunction(() => document.querySelector('#lr-body')?.textContent.includes('14.000'));
   check(await page.locator('#lr-settle').isDisabled(), 'Already paid employee cannot be settled in UI');
-  await page.selectOption('#lr-employee', 'b'); await page.waitForFunction(() => !document.querySelector('#lr-settle').disabled);
+  await page.selectOption('#lr-employee', 'b'); await page.waitForFunction(() => document.querySelector('#lr-settle') && !document.querySelector('#lr-settle').disabled);
   await page.click('#lr-settle'); check(await page.locator('#lr-dialog').isVisible(), 'Review modal shown');
   check(await page.locator('#lr-confirm-pay').isDisabled(), 'Explicit paid confirmation required');
   await page.click('#lr-cancel');
@@ -138,9 +145,9 @@ try {
   check(await page.inputValue('#lr-from') === '2026-09-20', 'Realtime refresh preserves date typing');
   await page.screenshot({ path: path.join(outDir, 'reports-desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
-  check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'Mobile: no page horizontal overflow');
   await page.screenshot({ path: path.join(outDir, 'reports-mobile.png'), fullPage: true });
+  check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'Mobile: no page horizontal overflow');
   check(pageErrors.length === 0, 'No browser runtime errors: ' + pageErrors.join('; '));
 } finally { await browser.close(); await new Promise(r => server.close(r)); await pool.end(); }
-await fs.writeFile(path.join(outDir, 'qa.json'), JSON.stringify({ passed: true, assertions, productionWrites: 0, tests: ['date-boundaries', 'historic-values', 'cancelled-exclusion', 'legacy-paid', 'permissions', 'concurrent-settlements', 'idempotency', 'stale-client', 'xlsx-roundtrip', 'formula-injection', 'browser-desktop-mobile', 'confirmation', 'typing-preserved'] }, null, 2));
+await fs.writeFile(path.join(outDir, 'qa.json'), JSON.stringify({ passed: true, assertions, productionWrites: 0, tests: ['date-boundaries', 'historic-values', 'cancelled-exclusion', 'legacy-paid', 'permissions', 'concurrent-settlements', 'idempotency', 'stale-client', 'archived-history', 'xlsx-roundtrip', 'formula-injection', 'browser-desktop-mobile', 'confirmation', 'typing-preserved'] }, null, 2));
 console.log('REPORTS_QA_PASS', assertions, 'assertions; productionWrites=0');
