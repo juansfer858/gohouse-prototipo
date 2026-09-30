@@ -6,11 +6,11 @@
   const date = v => v && /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? new Date(String(v).slice(0, 10) + 'T00:00:00Z') : null;
   function formula(f, result) { return { formula: f, result: result ?? 0 }; }
   function build(ExcelJS, report, title = 'Informe general') {
-    const wb = new ExcelJS.Workbook();
+    const wb = new ExcelJS.Workbook(); wb.addWorksheet('Resumen');
     wb.creator = report.brand; wb.created = new Date(); wb.calcProperties.fullCalcOnLoad = true;
     const period = report.filter.from + ' a ' + report.filter.to + ' · America/Bogota · COP';
     function sheet(name, headers, widths, rows, moneyCols = []) {
-      const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 5 }], properties: { defaultRowHeight: 21 } });
+      const ws = wb.getWorksheet(name) || wb.addWorksheet(name); ws.views = [{ state: 'frozen', ySplit: 5 }]; ws.properties.defaultRowHeight = 21;
       ws.columns = widths.map(width => ({ width }));
       ws.mergeCells(1, 1, 1, headers.length); ws.getCell('A1').value = report.brand + ' — ' + title;
       ws.getCell('A1').font = { size: 16, bold: true, color: { argb: 'FF1E312B' } }; ws.getRow(1).height = 30;
@@ -73,7 +73,6 @@
     const overview = sheet('Resumen', ['Indicador', 'Valor / explicación'], [52, 72], summaryRows);
     [10, 11, 12, 13, 15, 17].forEach(r => { overview.getCell('B' + r).numFmt = numFormat; });
     [22, 23, 24].forEach(r => { overview.getRow(r).height = 44; });
-    overview.orderNo = 0;
     function groupRows(groups, kind) {
       return groups.map((g, i) => {
         const row = i + 6, key = kind === 'day' ? cond('B', `A${row}`) : kind === 'employee' ? cond('R', `J${row}`) : cond('G', `A${row}`);
