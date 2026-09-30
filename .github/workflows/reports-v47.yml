@@ -1,0 +1,98 @@
+name: Llanos reports V47 QA
+on:
+  push:
+    branches: [feat/llanos-reports-v47]
+    paths:
+      - 'release/payload/reports-1/**'
+      - 'tests/reports-v47.mjs'
+      - 'scripts/build-llanos-reports-v47.py'
+      - '.github/workflows/reports-v47.yml'
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/payload/reports-1/**'
+      - 'tests/reports-v47.mjs'
+      - 'scripts/build-llanos-reports-v47.py'
+      - '.github/workflows/reports-v47.yml'
+permissions:
+  contents: write
+concurrency:
+  group: llanos-reports-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  reports:
+    if: github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'build(v47):')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: reports_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d reports_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      REPORT_TEST_DATABASE_URL: postgres://postgres:test-only-password@127.0.0.1:5432/reports_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build from verified production base
+        run: |
+          python3 scripts/build-llanos-reports-v47.py
+          echo "REPORT_PAYLOAD=$GITHUB_WORKSPACE/release/payload/reports-1" >> "$GITHUB_ENV"
+      - name: Isolated test dependencies and local Excel runtime
+        run: |
+          mkdir -p /tmp/llanos-report-tests
+          printf '{"private":true,"type":"module"}\n' > /tmp/llanos-report-tests/package.json
+          npm install --prefix /tmp/llanos-report-tests --ignore-scripts --no-audit --no-fund express@4.21.2 pg@8.16.3 exceljs@4.4.0 playwright@1.55.0
+          cp /tmp/llanos-report-tests/node_modules/exceljs/dist/exceljs.min.js release/payload/reports-1/web/llanos-exceljs-4.4.0.min.js
+          cp /tmp/llanos-report-tests/node_modules/exceljs/LICENSE release/payload/reports-1/web/llanos-exceljs-4.4.0.LICENSE.txt
+          cp tests/reports-v47.mjs /tmp/llanos-report-tests/reports-v47.mjs
+          cd /tmp/llanos-report-tests
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Syntax and existing panel regression markers
+        run: |
+          node --check release/payload/reports-1/server/src/reports.js
+          node --check release/payload/reports-1/server/src/server.js
+          node --check release/payload/reports-1/web/llanos-reports.js
+          node --check release/payload/reports-1/web/llanos-report-excel.js
+          python3 - <<'PY'
+          import re,pathlib
+          p=pathlib.Path('release/payload/reports-1/web/gohouse-panel.html').read_text()
+          for marker in ['cancelarPedidoPanel','gohouse-vps-adapter.js','gohouse-branding.js','llanos-reports.js']:
+              assert marker in p,marker
+          assert 'firebasejs' not in p
+          parts=[body for attrs,body in re.findall(r'<script([^>]*)>([\s\S]*?)</script>',p,re.I) if 'src=' not in attrs.lower()]
+          pathlib.Path('/tmp/panel-inline.js').write_text('\n'.join(parts))
+          PY
+          node --check /tmp/panel-inline.js
+      - name: PostgreSQL transactions, browser and real XLSX
+        run: node /tmp/llanos-report-tests/reports-v47.mjs
+      - name: Keep QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llanos-reports-qa-${{ github.run_attempt }}
+          path: qa-reports-v47/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Commit verified immutable payload and manifest on feature branch only
+        if: github.event_name == 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release/payload/reports-1
+          if ! git diff --cached --quiet; then git commit -m 'build(v47): verified report payload and bundled Excel writer'; fi
+          python3 scripts/build-llanos-reports-v47.py --manifest
+          cp qa-reports-v47/qa.json release/REPORTS_QA_V47.json
+          git add release/version.json release/REPORTS_QA_V47.json
+          git commit -m 'build(v47): release manifest and passing QA evidence'
+          git push origin HEAD:feat/llanos-reports-v47
