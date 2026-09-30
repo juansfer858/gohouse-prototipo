@@ -55,9 +55,11 @@ panel = panel[:a] + '''function confirmarLiquidacionPagada(){
 assert 'firebasejs' not in panel and 'cancelarPedidoPanel' in panel and 'gohouse-vps-adapter.js' in panel
 assert 'orden.liquidado = true' not in panel
 write('web/gohouse-panel.html', panel)
-# Idempotent packaging refinements: suppress stale-filter actions and open Excel on Resumen.
+# Idempotent refinements; the complete generated source is tested and committed.
 ui = (ROOT / 'web/llanos-reports.js').read_text()
 ui = ui.replace("report = null; sequence++; load();", "report = null; $('lr-body').innerHTML = ''; sequence++; load();")
+ui = ui.replace('.lr-filters{display:grid;grid-template-columns:1fr 1fr 2fr auto;', '.lr-filters>div{min-width:0}.lr-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr) auto;')
+ui = ui.replace('.lr-filters{grid-template-columns:1fr 1fr}', '.lr-filters{grid-template-columns:repeat(2,minmax(0,1fr))}')
 write('web/llanos-reports.js', ui)
 ex = (ROOT / 'web/llanos-report-excel.js').read_text()
 ex = ex.replace('const wb = new ExcelJS.Workbook();', "const wb = new ExcelJS.Workbook(); wb.addWorksheet('Resumen');") if "wb.addWorksheet('Resumen');" not in ex else ex
