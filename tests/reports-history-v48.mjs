@@ -51,6 +51,7 @@ check(whole.summary.services === 8 && whole.summary.active === 1 && whole.summar
 check(whole.rows.some(r => r.id === 'undated') && whole.undatedOrders === 1, 'Undated rows retained in all-history mode');
 check(whole.rows.some(r => r.id === 'old') && whole.history.firstDate === '2025-06-01', 'Older years are not silently filtered');
 check(whole.history.total === 10 && whole.employees.find(e => e.id === 'a').historyCount === 10, 'Employee and report history counts agree');
+check(whole.estimatedDates === 0, 'Undated records are not falsely described as estimated dates');
 check(!whole.canSettleSelection, 'All-history display does not enable accidental whole-history payout');
 check(whole.rows.every(r => r.employeeId === 'a'), 'Never mix employees');
 check(buildReport(fixture, filters({employeeId:'a',status:'active'})).rows.map(r=>r.id).join() === 'busy', 'Optional in-progress filter');
@@ -197,6 +198,8 @@ try {
   check(globalThis.LlanosReportExcel.build(ExcelJS,lr).getWorksheet('Servicios').rowCount===90,'Export retains all paginated rows');
   await page.fill('#lr-from', '2026-09-20'); await page.evaluate(() => window.LlanosReports.mount()); await page.waitForTimeout(900);
   check(await page.inputValue('#lr-from') === '2026-09-20', 'Realtime refresh preserves date typing');
+  await page.click('#lr-all'); await page.click('#lr-tab-employee');
+  await page.waitForFunction(()=>document.querySelector('#lr-history-count')?.textContent.includes('10 de 10'));
   await page.screenshot({ path: path.join(outDir, 'reports-desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: path.join(outDir, 'reports-mobile.png'), fullPage: true });

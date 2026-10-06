@@ -45,7 +45,7 @@
         delivered && r.valid ? formula(`J${n}-K${n}`, r.earnings) : null,
         !delivered ? 'No aplica' : !r.valid ? 'Revisar valores' : r.settled ? 'Liquidado' : 'Pendiente',
         r.settlementId || (r.settled ? 'Registro anterior' : ''), r.settledAt ? date(new Date(r.settledAt).toISOString()) : null,
-        r.dateEstimated ? 'Sí' : 'No', [!r.date ? 'Sin fecha registrada.' : '', delivered && !r.valid ? 'Falta tarifa o comisión histórica válida; no se calcula con el porcentaje actual.' : ''].filter(Boolean).join(' '), r.employeeId];
+        r.date && r.dateEstimated ? 'Sí' : 'No', [!r.date ? 'Sin fecha registrada.' : '', delivered && !r.valid ? 'Falta tarifa o comisión histórica válida; no se calcula con el porcentaje actual.' : ''].filter(Boolean).join(' '), r.employeeId];
     });
     const detail = sheet('Servicios', ['Pedido', 'Fecha del servicio', 'Empleado', 'Estado', 'Cliente', 'Dirección', 'Método de pago', 'Referencia / zona', 'Valor compra', 'Valor domicilio', 'Comisión empresa', 'Ganancia empleado', 'Liquidación', 'Número liquidación', 'Fecha liquidación (UTC)', 'Fecha estimada', 'Observaciones', 'ID empleado'], [12, 18, 27, 23, 26, 40, 22, 25, 19, 19, 20, 20, 18, 38, 20, 16, 40, 28], serviceRows, [9, 10, 11, 12]);
     detail.getColumn(18).hidden = true;

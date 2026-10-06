@@ -141,7 +141,7 @@ export function buildReport(root, filter, ledgerRows = [], settlements = []) {
     byPayment: [...methods].map(([method, list]) => ({ method, ...totals(list) })),
     pendingHash: pendingHash(pending), pendingIds: pending.map(r => r.id),
     canSettleSelection: !!filter.employeeId && !!filter.from && !!filter.to && (!filter.status || filter.status === 'entregado') && pending.length > 0 && summary.missingAmounts === 0,
-    estimatedDates: rows.filter(r => r.dateEstimated).length,
+    estimatedDates: rows.filter(r => r.date && r.dateEstimated).length,
     undatedOrders: employeeHistory.filter(r => !r.date).length,
     settlements: settlements.filter(s => (!filter.employeeId || s.employee_id === filter.employeeId) && (!filter.to || String(s.date_from).slice(0, 10) <= filter.to) && (!filter.from || String(s.date_to).slice(0, 10) >= filter.from)).slice(0, 100)
   };
