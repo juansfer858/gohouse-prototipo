@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "assertions": 75,
+  "assertions": 76,
   "productionWrites": 0,
   "tests": [
     "date-boundaries",
