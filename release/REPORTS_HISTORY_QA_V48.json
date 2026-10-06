@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "assertions": 75,
+  "productionWrites": 0,
+  "tests": [
+    "date-boundaries",
+    "historic-values",
+    "cancelled-exclusion",
+    "legacy-paid",
+    "permissions",
+    "concurrent-settlements",
+    "idempotency",
+    "stale-client",
+    "archived-history",
+    "xlsx-roundtrip",
+    "formula-injection",
+    "browser-desktop-mobile",
+    "confirmation",
+    "typing-preserved"
+  ]
+}
