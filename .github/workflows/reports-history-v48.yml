@@ -1,0 +1,95 @@
+name: Llanos complete history V48 QA
+on:
+  push:
+    branches: [fix/llanos-history-v48-20261006]
+    paths:
+      - 'scripts/llanos-history-v48.patch.json'
+      - 'scripts/build-llanos-history-v48.py'
+      - '.github/workflows/reports-history-v48.yml'
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/payload/reports-history-1/**'
+      - 'scripts/llanos-history-v48.patch.json'
+      - 'scripts/build-llanos-history-v48.py'
+      - 'tests/reports-history-v48.mjs'
+      - '.github/workflows/reports-history-v48.yml'
+permissions:
+  contents: write
+concurrency:
+  group: llanos-history-v48-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: reports_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d reports_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      REPORT_TEST_DATABASE_URL: postgres://postgres:test-only-password@127.0.0.1:5432/reports_test
+      REPORT_PAYLOAD: /tmp/llanos-history-v48/payload
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and verify exact V47 bases
+        run: |
+          python3 scripts/build-llanos-history-v48.py
+          node --check release/payload/reports-history-1/server/src/reports.js
+          node --check release/payload/reports-history-1/web/llanos-reports.js
+          node --check release/payload/reports-history-1/web/llanos-report-excel.js
+          python3 - <<'PY'
+          import pathlib,re
+          new=pathlib.Path('release/payload/reports-history-1/web/gohouse-panel.html').read_text()
+          old=pathlib.Path('release/payload/reports-1/web/gohouse-panel.html').read_text()
+          assert new==old.replace('/llanos-reports.js?v=20260930.47','/llanos-reports.js?v=20261006.48')
+          assert 'firebasejs' not in new
+          assert 'gohouse-vps-adapter.js' in new and 'cancelarPedidoPanel' in new
+          script='\n'.join(body for attrs,body in re.findall(r'<script([^>]*)>([\s\S]*?)</script>',new,re.I) if 'src=' not in attrs.lower())
+          pathlib.Path('/tmp/llanos-panel-inline-v48.js').write_text(script)
+          PY
+          node --check /tmp/llanos-panel-inline-v48.js
+      - name: Isolated dependencies and test payload
+        run: |
+          mkdir -p /tmp/llanos-history-v48/payload
+          printf '{"private":true,"type":"module"}\n' > /tmp/llanos-history-v48/package.json
+          npm install --prefix /tmp/llanos-history-v48 --ignore-scripts --no-audit --no-fund express@4.21.2 pg@8.16.3 exceljs@4.4.0 playwright@1.55.0
+          cp -a release/payload/reports-1/. /tmp/llanos-history-v48/payload/
+          cp -a release/payload/reports-history-1/. /tmp/llanos-history-v48/payload/
+          cp tests/reports-history-v48.mjs /tmp/llanos-history-v48/test.mjs
+          cd /tmp/llanos-history-v48
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: History, payments, browser and XLSX regression
+        run: node /tmp/llanos-history-v48/test.mjs
+      - name: Keep QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llanos-history-v48-qa-${{ github.run_attempt }}
+          path: qa-reports-v48/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Commit validated payload on feature branch only
+        if: github.event_name == 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release/payload/reports-history-1 tests/reports-history-v48.mjs
+          if ! git diff --cached --quiet; then git commit -m 'build(v48): verified full employee history payload and regression tests'; fi
+          python3 scripts/build-llanos-history-v48.py --manifest
+          cp qa-reports-v48/qa.json release/REPORTS_HISTORY_QA_V48.json
+          git add release/version.json release/REPORTS_HISTORY_QA_V48.json
+          if ! git diff --cached --quiet; then git commit -m 'build(v48): release manifest and passing isolated QA'; fi
+          git push origin HEAD:fix/llanos-history-v48-20261006
