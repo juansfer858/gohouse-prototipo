@@ -1,0 +1,93 @@
+name: Llanos report date compatibility V49 QA
+on:
+  push:
+    branches: [fix/llanos-report-dates-v49-20261006]
+    paths:
+      - 'scripts/build-llanos-report-dates-v49.py'
+      - 'tests/reports-dates-v49-extra.mjs'
+      - '.github/workflows/reports-dates-v49.yml'
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/payload/reports-dates-1/**'
+      - 'scripts/build-llanos-report-dates-v49.py'
+      - 'tests/reports-dates-v49*.mjs'
+      - '.github/workflows/reports-dates-v49.yml'
+permissions:
+  contents: write
+concurrency:
+  group: llanos-dates-v49-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  dates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: reports_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d reports_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      REPORT_TEST_DATABASE_URL: postgres://postgres:test-only-password@127.0.0.1:5432/reports_test
+      REPORT_PAYLOAD: /tmp/llanos-dates-v49/payload
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build three-file patch from verified V48 bases
+        run: |
+          python3 scripts/build-llanos-report-dates-v49.py
+          node --check release/payload/reports-dates-1/server/src/reports.js
+          node --check release/payload/reports-dates-1/web/llanos-reports.js
+          node --check tests/reports-dates-v49-extra.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          old=Path('release/payload/reports-history-1/web/gohouse-panel.html').read_text()
+          new=Path('release/payload/reports-dates-1/web/gohouse-panel.html').read_text()
+          assert new==old.replace('/llanos-reports.js?v=20261006.48','/llanos-reports.js?v=20261006.49')
+          assert 'firebasejs' not in new
+          assert 'gohouse-vps-adapter.js' in new and 'cancelarPedidoPanel' in new
+          PY
+      - name: Isolated dependencies and test payload
+        run: |
+          mkdir -p /tmp/llanos-dates-v49/payload
+          printf '{"private":true,"type":"module"}\n' > /tmp/llanos-dates-v49/package.json
+          npm install --prefix /tmp/llanos-dates-v49 --ignore-scripts --no-audit --no-fund express@4.21.2 pg@8.16.3 exceljs@4.4.0 playwright@1.55.0
+          cp -a release/payload/reports-1/. /tmp/llanos-dates-v49/payload/
+          cp -a release/payload/reports-history-1/. /tmp/llanos-dates-v49/payload/
+          cp -a release/payload/reports-dates-1/. /tmp/llanos-dates-v49/payload/
+          cp tests/reports-dates-v49.mjs /tmp/llanos-dates-v49/test.mjs
+          cp tests/reports-dates-v49-extra.mjs /tmp/llanos-dates-v49/
+          cd /tmp/llanos-dates-v49
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Date compatibility, seven-day browser and full V48 regression
+        run: node /tmp/llanos-dates-v49/test.mjs
+      - name: Keep QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llanos-dates-v49-qa-${{ github.run_attempt }}
+          path: qa-reports-v49/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Commit validated payload on feature branch only
+        if: github.event_name == 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release/payload/reports-dates-1 tests/reports-dates-v49.mjs
+          if ! git diff --cached --quiet; then git commit -m 'build(v49): validated report date compatibility payload'; fi
+          python3 scripts/build-llanos-report-dates-v49.py --manifest
+          cp qa-reports-v49/qa.json release/REPORTS_DATES_QA_V49.json
+          git add release/version.json release/REPORTS_DATES_QA_V49.json
+          if ! git diff --cached --quiet; then git commit -m 'build(v49): immutable release manifest and passing QA'; fi
+          git push origin HEAD:fix/llanos-report-dates-v49-20261006

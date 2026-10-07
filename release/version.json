@@ -1,27 +1,22 @@
 {
-  "version": "2026.10.06-white-label.48",
-  "published_at": "2026-10-06T19:28:22.048772+00:00",
+  "version": "2026.10.06-white-label.49",
+  "published_at": "2026-10-07T01:25:25.760792+00:00",
   "status": "release",
   "files": [
     {
       "path": "server/src/reports.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/bea3b460f1a4bb8b0ba6f2711a0bb01f5baaa8e3/release/payload/reports-history-1/server/src/reports.js",
-      "sha256": "712acc937725ff55737345ea26e3f8f6a406e71a8c96a2e611c4284386a2ddb6"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0214079d81af62ac8a4a0f2029da69337450b86c/release/payload/reports-dates-1/server/src/reports.js",
+      "sha256": "2cdf3c0e59b817c472135e3278ca983e441d24c60308c940a866ed04af86df8d"
     },
     {
       "path": "web/llanos-reports.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/bea3b460f1a4bb8b0ba6f2711a0bb01f5baaa8e3/release/payload/reports-history-1/web/llanos-reports.js",
-      "sha256": "5f7e55dbdcff8a01095575f04243411815c8d1b5c542e3d661bc8782c1f941db"
-    },
-    {
-      "path": "web/llanos-report-excel.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/bea3b460f1a4bb8b0ba6f2711a0bb01f5baaa8e3/release/payload/reports-history-1/web/llanos-report-excel.js",
-      "sha256": "e739a07b72c4d136f710b1bdafc2cf6367dde7da7719f95b352d5308921331ae"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0214079d81af62ac8a4a0f2029da69337450b86c/release/payload/reports-dates-1/web/llanos-reports.js",
+      "sha256": "4ddf593628a873a6be859720333651b1dd234ef08bf3bb1f3a40b17faa6ed280"
     },
     {
       "path": "web/gohouse-panel.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/bea3b460f1a4bb8b0ba6f2711a0bb01f5baaa8e3/release/payload/reports-history-1/web/gohouse-panel.html",
-      "sha256": "a710d2315595f739f7db324dba69a60f52390a6ec218b967edfdaec88cfe6b3b"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0214079d81af62ac8a4a0f2029da69337450b86c/release/payload/reports-dates-1/web/gohouse-panel.html",
+      "sha256": "db8733621ea968ce21aa36228b16996d65fbeafe9c3ba81cf67b8856d04d8df3"
     }
   ],
   "delete": [],
