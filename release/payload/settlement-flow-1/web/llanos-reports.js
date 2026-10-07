@@ -45,7 +45,7 @@
         <div id="lr-flow-heading"><h2 class="lr-flow-title">Liquidar servicios de un empleado</h2><p class="lr-flow-intro lr-hint">Revisa primero. Solo al confirmar se registran los servicios como liquidados; consultar o exportar no mueve dinero.</p><div class="lr-steps" aria-label="Pasos para liquidar"><div class="lr-step"><b>1. Elige empleado y fechas</b><span>Define el período.</span></div><div class="lr-step"><b>2. Revisa los servicios</b><span>Solo entregados pendientes.</span></div><div class="lr-step"><b>3. Confirma y guarda</b><span>Conserva el comprobante.</span></div></div></div>
         <div class="lr-filters"><div class="lr-employee-field"><label for="lr-employee">Empleado</label><select id="lr-employee"><option value="">Todos los empleados</option></select></div><div><label for="lr-from">Desde (opcional)</label><input type="date" id="lr-from" value="${applied.from}"></div><div><label for="lr-to">Hasta (opcional)</label><input type="date" id="lr-to" value="${applied.to}"></div><button type="button" class="btn btn-primary" id="lr-query">Consultar</button></div>
         <div class="lr-tools"><button type="button" class="btn btn-primary btn-sm" id="lr-all">Todo el historial</button><button type="button" class="btn btn-ghost btn-sm" id="lr-today">Hoy</button><button type="button" class="btn btn-ghost btn-sm" id="lr-week">Últimos 7 días</button><button type="button" class="btn btn-ghost btn-sm" id="lr-month">Este mes</button><label for="lr-status" style="align-self:center">Estado</label><select id="lr-status"><option value="">Todos los estados</option><option value="entregado">Entregados</option><option value="active">Pendientes / en curso</option><option value="cancelado">Cancelados</option></select></div>
-        <p class="lr-hint">Al seleccionar un empleado se muestra todo su historial. Las fechas y el estado son filtros opcionales. Fechas inclusivas, hora de Colombia. Los servicios entregados se filtran por fecha de entrega; los cancelados, por fecha de cancelación; los abiertos, por fecha de solicitud.</p>
+        <p class="lr-hint" id="lr-query-help">Al seleccionar un empleado se muestra todo su historial. Las fechas y el estado son filtros opcionales. Fechas inclusivas, hora de Colombia. Los servicios entregados se filtran por fecha de entrega; los cancelados, por fecha de cancelación; los abiertos, por fecha de solicitud.</p>
         <div id="lr-error" class="lr-error" role="alert" hidden></div><div id="lr-progress" class="lr-hint" role="status"></div><div id="lr-body"></div></section>`;
       $('lr-query').onclick = applyFilters;
       $('lr-from').oninput = markDraftChanged;
@@ -157,6 +157,16 @@
     $('lr-tab-general').className = 'btn ' + (employee ? 'btn-ghost' : 'btn-primary');
     if ($('lr-flow-heading')) $('lr-flow-heading').hidden = !employee;
     if ($('lr-query')) $('lr-query').textContent = employee ? 'Revisar servicios' : 'Consultar';
+
+    const fromLabel = document.querySelector('label[for="lr-from"]'), toLabel = document.querySelector('label[for="lr-to"]');
+    if (fromLabel) fromLabel.textContent = employee ? 'Desde (liquidación)' : 'Desde (opcional)';
+    if (toLabel) toLabel.textContent = employee ? 'Hasta (liquidación)' : 'Hasta (opcional)';
+    if ($('lr-query-help')) $('lr-query-help').textContent = employee
+      ? 'Sin fechas: consulta del historial. Para liquidar: elige Desde y Hasta y revisa los servicios entregados pendientes.'
+      : 'Fechas inclusivas, hora de Colombia. Entregados: fecha de entrega; cancelados: fecha de cancelación; abiertos: fecha de solicitud.';
+    const step = lastSettlement?.employee_id === report?.filter.employeeId ? 2 : report?.filter.employeeId && report.filter.from && report.filter.to ? 1 : 0;
+    document.querySelectorAll('.lr-steps .lr-step').forEach((el, i) => el.classList.toggle('current', i === step));
+
   }
   function markDraftChanged() {
     if (!report || draftMatches()) { if (report) render(); return; }
