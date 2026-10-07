@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "assertions": 46,
+  "productionWrites": 0,
+  "backendChanged": false,
+  "tests": [
+    "three-step-review",
+    "pending-only-summary",
+    "exclude-paid-cancelled-active",
+    "all-history-retained",
+    "dirty-date-protection",
+    "server-reread",
+    "double-confirmation",
+    "estimated-date-review",
+    "cancel-no-write",
+    "doubleclick-single-request",
+    "receipt-xlsx",
+    "lost-acknowledgement-identical-retry",
+    "permissions",
+    "desktop-mobile"
+  ]
+}
