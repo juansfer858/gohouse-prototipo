@@ -24,6 +24,22 @@ def build():
     assert ui.count(marker)==1
     header='        <div id="lr-flow-heading"><h2 class="lr-flow-title">Liquidar servicios de un empleado</h2><p class="lr-flow-intro lr-hint">Revisa primero. Solo al confirmar se registran los servicios como liquidados; consultar o exportar no mueve dinero.</p><div class="lr-steps" aria-label="Pasos para liquidar"><div class="lr-step"><b>1. Elige empleado y fechas</b><span>Define el período.</span></div><div class="lr-step"><b>2. Revisa los servicios</b><span>Solo entregados pendientes.</span></div><div class="lr-step"><b>3. Confirma y guarda</b><span>Conserva el comprobante.</span></div></div></div>\n'
     ui=ui.replace(marker,header+marker,1)
+    marker='<p class="lr-hint">Al seleccionar un empleado se muestra todo su historial.'
+    assert marker in ui
+    ui=ui.replace(marker,'<p class="lr-hint" id="lr-query-help">Al seleccionar un empleado se muestra todo su historial.',1)
+    marker="    if ($('lr-query')) $('lr-query').textContent = employee ? 'Revisar servicios' : 'Consultar';"
+    assert marker in ui
+    labels='''
+    const fromLabel = document.querySelector('label[for="lr-from"]'), toLabel = document.querySelector('label[for="lr-to"]');
+    if (fromLabel) fromLabel.textContent = employee ? 'Desde (liquidación)' : 'Desde (opcional)';
+    if (toLabel) toLabel.textContent = employee ? 'Hasta (liquidación)' : 'Hasta (opcional)';
+    if ($('lr-query-help')) $('lr-query-help').textContent = employee
+      ? 'Sin fechas: consulta del historial. Para liquidar: elige Desde y Hasta y revisa los servicios entregados pendientes.'
+      : 'Fechas inclusivas, hora de Colombia. Entregados: fecha de entrega; cancelados: fecha de cancelación; abiertos: fecha de solicitud.';
+    const step = lastSettlement?.employee_id === report?.filter.employeeId ? 2 : report?.filter.employeeId && report.filter.from && report.filter.to ? 1 : 0;
+    document.querySelectorAll('.lr-steps .lr-step').forEach((el, i) => el.classList.toggle('current', i === step));
+'''
+    ui=ui.replace(marker,marker+'\n'+labels,1)
     ui=ui.replace("version: 'llanos-reports-v49'","version: 'llanos-settlement-flow-v50'")
     assert "version: 'llanos-settlement-flow-v50'" in ui
     OUT.mkdir(parents=True,exist_ok=True)
