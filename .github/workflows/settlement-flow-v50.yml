@@ -1,0 +1,100 @@
+name: Llanos guided settlement V50 QA
+on:
+  push:
+    branches: [feat/llanos-settlement-flow-v50]
+    paths:
+      - 'scripts/llanos-settlement-*-v50.js'
+      - 'scripts/build-llanos-settlement-v50.py'
+      - 'tests/settlement-flow-v50.mjs'
+      - '.github/workflows/settlement-flow-v50.yml'
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/payload/settlement-flow-1/**'
+      - 'scripts/llanos-settlement-*-v50.js'
+      - 'scripts/build-llanos-settlement-v50.py'
+      - 'tests/settlement-flow-v50.mjs'
+      - '.github/workflows/settlement-flow-v50.yml'
+permissions:
+  contents: write
+concurrency:
+  group: llanos-settlement-v50-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  settlement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: reports_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d reports_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      REPORT_TEST_DATABASE_URL: postgres://postgres:test-only-password@127.0.0.1:5432/reports_test
+      REPORT_PAYLOAD: /tmp/llanos-flow-v50/payload
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build two-file UI patch from verified V49
+        run: |
+          python3 scripts/build-llanos-settlement-v50.py
+          node --check release/payload/settlement-flow-1/web/llanos-reports.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          original=Path('release/payload/reports-dates-1/web/gohouse-panel.html').read_text()
+          updated=Path('release/payload/settlement-flow-1/web/gohouse-panel.html').read_text()
+          assert updated==original.replace('/llanos-reports.js?v=20261006.49','/llanos-reports.js?v=20261006.50')
+          assert 'firebasejs' not in updated and 'gohouse-vps-adapter.js' in updated
+          assert hashlib.sha256(Path('release/payload/reports-dates-1/server/src/reports.js').read_bytes()).hexdigest()=='2cdf3c0e59b817c472135e3278ca983e441d24c60308c940a866ed04af86df8d'
+          PY
+      - name: Isolated test dependencies and baseline
+        run: |
+          mkdir -p /tmp/llanos-flow-v50/baseline /tmp/llanos-flow-v50/payload
+          printf '{"private":true,"type":"module"}\n' > /tmp/llanos-flow-v50/package.json
+          npm install --prefix /tmp/llanos-flow-v50 --ignore-scripts --no-audit --no-fund express@4.21.2 pg@8.16.3 exceljs@4.4.0 playwright@1.55.0
+          cp -a release/payload/reports-1/. /tmp/llanos-flow-v50/baseline/
+          cp -a release/payload/reports-history-1/. /tmp/llanos-flow-v50/baseline/
+          cp -a release/payload/reports-dates-1/. /tmp/llanos-flow-v50/baseline/
+          cp -a /tmp/llanos-flow-v50/baseline/. /tmp/llanos-flow-v50/payload/
+          cp -a release/payload/settlement-flow-1/. /tmp/llanos-flow-v50/payload/
+          cp tests/reports-history-v48.mjs /tmp/llanos-flow-v50/regression.mjs
+          cp tests/settlement-flow-v50.mjs /tmp/llanos-flow-v50/flow.mjs
+          cd /tmp/llanos-flow-v50
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Existing financial and history regressions
+        run: REPORT_PAYLOAD=/tmp/llanos-flow-v50/baseline node /tmp/llanos-flow-v50/regression.mjs
+      - name: Guided settlement, safe retries, receipts and mobile
+        run: node /tmp/llanos-flow-v50/flow.mjs
+      - name: Retain QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llanos-settlement-v50-qa-${{ github.run_attempt }}
+          path: |
+            qa-settlement-v50/
+            qa-reports-v48/qa.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Commit verified UI payload only on feature branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release/payload/settlement-flow-1
+          if ! git diff --cached --quiet; then git commit -m 'build(v50): verified guided settlement UI'; fi
+          python3 scripts/build-llanos-settlement-v50.py --manifest
+          cp qa-settlement-v50/qa.json release/SETTLEMENT_FLOW_QA_V50.json
+          git add release/version.json release/SETTLEMENT_FLOW_QA_V50.json
+          if ! git diff --cached --quiet; then git commit -m 'build(v50): immutable UI manifest and QA results'; fi
+          git push origin HEAD:feat/llanos-settlement-flow-v50
