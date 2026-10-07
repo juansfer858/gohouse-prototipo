@@ -14,7 +14,7 @@ const admin={type:'panel',email:'admin@example.test'},reader={type:'panel',email
 const outDir=path.resolve('qa-settlement-v50');await fs.mkdir(outDir,{recursive:true});
 let assertions=0;const check=(v,msg)=>{assert(v,msg);assertions++;console.log('PASS',assertions,msg);};
 const order=(id,fare,employee='a',extra={})=>({id,numero:id,estado:'entregado',repartidorId:employee,tarifa:fare,comisionCasa:Math.round(fare*.3),createdAt:Date.parse('2026-10-06T15:00:00Z'),deliveredAt:Date.parse('2026-10-06T16:00:00Z'),cliente:'=DEMO(1)',direccion:'Dirección ficticia de pruebas',pago:'Efectivo',valorCompra:10000,...extra});
-const fixture={'gohouse-data':{config:{brandName:'EMPRESA DEMO QA',porcentajeCasa:90},usuariosPanel:{a:{email:admin.email,rol:'administrador',activo:true},b:{email:reader.email,rol:'lectura',activo:true}},repartidores:[{id:'a',nombre:'Empleado A de prueba'},{id:'b',nombre:'Empleado B de prueba'}],orders:[...Array.from({length:8},(_,i)=>order('A'+(i+1),i===7?17900:10000)),order('pagado',7000,'a',{liquidado:true}),order('cancelado',9000,'a',{estado:'cancelado',canceladoAt:Date.parse('2026-10-06T17:00:00Z')}),order('en-curso',8000,'a',{estado:'camino'}),order('B1',3000,'b') ]}};
+const fixture={'gohouse-data':{config:{brandName:'EMPRESA DEMO QA',porcentajeCasa:90},usuariosPanel:{a:{email:admin.email,rol:'administrador',activo:true},b:{email:reader.email,rol:'lectura',activo:true}},repartidores:[{id:'a',nombre:'Empleado A de prueba'},{id:'b',nombre:'Empleado B de prueba'}],orders:[...Array.from({length:8},(_,i)=>order('A'+(i+1),i===7?17900:10000)),order('pagado',7000,'a',{liquidado:true}),order('cancelado',9000,'a',{estado:'cancelado',canceladoAt:Date.parse('2026-10-06T17:00:00Z')}),order('en-curso',8000,'a',{estado:'camino'}),order('B1',3000,'b')]}};
 await pool.query('CREATE TABLE IF NOT EXISTS app_state(id integer PRIMARY KEY,data jsonb NOT NULL,version bigint NOT NULL DEFAULT 1,updated_at timestamptz NOT NULL DEFAULT now())');
 await pool.query('CREATE TABLE IF NOT EXISTS audit_log(actor_type text,actor_id text,action text,path text,metadata jsonb)');
 await pool.query(await fs.readFile(path.join(payload,'migrations/011_employee_settlements.sql'),'utf8'));
@@ -23,24 +23,23 @@ await pool.query('INSERT INTO app_state(id,data) VALUES(1,$1)',[JSON.stringify(f
 const state=async()=> (await pool.query('SELECT data FROM app_state WHERE id=1')).rows[0].data;
 const saveFixture=async x=>pool.query('UPDATE app_state SET data=$1 WHERE id=1',[JSON.stringify(x)]);
 const app=express();app.use(express.json());
-let posts=[],dropNextReply=false,previewGets=0;
+let posts=[],previewGets=0;
 app.use((req,res,next)=>{
  if(req.path==='/api/reports/summary')previewGets++;
- if(req.method==='POST'&&req.path==='/api/reports/settlements'){
-   posts.push(structuredClone(req.body));
-   if(dropNextReply){dropNextReply=false;const original=res.json.bind(res);res.json=x=>{if(x?.ok){res.destroy();return res;}return original(x);};}
- }
+ if(req.method==='POST'&&req.path==='/api/reports/settlements')posts.push(structuredClone(req.body));
  next();
 });
 const authMiddleware=()=> (req,res,next)=>{const token=(req.headers.authorization||'').replace('Bearer ','');if(!token)return res.status(401).json({error:'UNAUTHORIZED'});req.principal=token==='reader'?reader:admin;next();};
 registerReportRoutes(app,{pool,authMiddleware,broadcast(){}});
 app.use(express.static(path.join(payload,'web')));
-app.get('/test-harness',(req,res)=>res.type('html').send(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#16261f;color:#f2efe5;font:15px Arial;margin:24px}input,select,button{padding:9px;border-radius:5px;border:1px solid #3c5348;background:#1e312b;color:#eee}.btn-primary{background:#e8863a;color:#111}.btn-ghost{background:transparent}h2{font-size:21px}h3{font-size:17px}button{cursor:pointer}</style></head><body><div id="vista-informes" style="display:block"></div><script>window.GoHouseVPS={api:async(p,o={})=>{const r=await fetch('/api'+p,{...o,headers:{'Content-Type':'application/json',Authorization:'Bearer '+(new URLSearchParams(location.search).get('role')||'admin')}});const j=await r.json();if(!r.ok)throw Object.assign(Error(j.error),{status:r.status});return j}};window.showToast=console.log;</script><script src="/llanos-reports.js"></script></body></html>`));
+// Test-only acknowledgement loss happens AFTER the actual API response (and DB commit).
+// A socket reset can be automatically retried by Chromium, making an indeterminate response test nondeterministic.
+app.get('/test-harness',(req,res)=>res.type('html').send(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#16261f;color:#f2efe5;font:15px Arial;margin:24px}input,select,button{padding:9px;border-radius:5px;border:1px solid #3c5348;background:#1e312b;color:#eee}.btn-primary{background:#e8863a;color:#111}.btn-ghost{background:transparent}h2{font-size:21px}h3{font-size:17px}button{cursor:pointer}</style></head><body><div id="vista-informes" style="display:block"></div><script>window.GoHouseVPS={api:async(p,o={})=>{const r=await fetch('/api'+p,{...o,headers:{'Content-Type':'application/json',Authorization:'Bearer '+(new URLSearchParams(location.search).get('role')||'admin')}});const j=await r.json();if(!r.ok)throw Object.assign(Error(j.error),{status:r.status});if(window.__loseReply&&p==='/reports/settlements'){window.__loseReply=false;throw Error('SIMULATED_REPLY_LOSS_AFTER_COMMIT');}return j}};window.showToast=console.log;</script><script src="/llanos-reports.js"></script></body></html>`));
 app.use((e,req,res,next)=>res.status(e.status||500).json({error:e.message}));
 const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));const base='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true});let page;
 try{
- const page=await browser.newPage({viewport:{width:1365,height:1000},acceptDownloads:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ page=await browser.newPage({viewport:{width:1365,height:1000},acceptDownloads:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(base+'/test-harness');await page.waitForSelector('#lr-export');
  check(await page.locator('.lr-steps .lr-step').count()===3,'Three explicit steps');
  check(await page.locator('#lr-settle').count()===0,'Cannot liquidate all employees together');
@@ -110,7 +109,7 @@ try{
  await page.click('#lr-another');await page.selectOption('#lr-employee','b');await page.waitForSelector('#lr-settle');
  await page.fill('#lr-from','2026-10-06');await page.fill('#lr-to','2026-10-06');await page.click('#lr-query');await page.waitForFunction(()=>document.querySelector('#lr-settle')&&!document.querySelector('#lr-settle').disabled);
  await page.click('#lr-settle');await page.waitForSelector('#lr-confirm-pay');await page.selectOption('#lr-pay','Otro');await page.fill('#lr-ref','Cierre de caja de prueba');await page.check('#lr-review-check');await page.check('#lr-confirm');
- dropNextReply=true;await page.click('#lr-confirm-pay');await page.waitForFunction(()=>document.querySelector('#lr-modal-error')?.textContent.includes('No se confirmó'));
+ await page.evaluate(()=>{window.__loseReply=true;});await page.click('#lr-confirm-pay');await page.waitForFunction(()=>document.querySelector('#lr-modal-error')?.textContent.includes('No se confirmó'));
  check(await page.locator('#lr-pay').isDisabled()&&await page.locator('#lr-ref').isDisabled(),'Unknown response locks the original operation data');
  await page.click('#lr-cancel');await page.waitForSelector('#lr-resume');await page.click('#lr-resume');await page.waitForSelector('#lr-confirm-pay');await page.click('#lr-confirm-pay');await page.waitForSelector('.lr-success');
  check(posts.length===3&&JSON.stringify(posts[1])===JSON.stringify(posts[2]),'Lost-response retry reuses identical payload and request key');
@@ -125,6 +124,7 @@ try{
  check(await page.locator('#lr-settle').isDisabled(),'Read-only user cannot register settlements');
  check(await page.locator('#lr-blocker').textContent().then(x=>x.includes('Solo el administrador')),'Permission limitation is explained');
  check(errors.length===0,'No browser errors: '+errors.join(';'));
- await fs.writeFile(path.join(outDir,'qa.json'),JSON.stringify({passed:true,assertions,productionWrites:0,backendChanged:false,tests:['three-step-review','pending-only-summary','exclude-paid-cancelled-active','all-history-retained','dirty-date-protection','server-reread','double-confirmation','estimated-date-review','cancel-no-write','doubleclick-single-request','receipt-xlsx','lost-response-identical-retry','permissions','desktop-mobile']},null,2));
+ await fs.writeFile(path.join(outDir,'qa.json'),JSON.stringify({passed:true,assertions,productionWrites:0,backendChanged:false,tests:['three-step-review','pending-only-summary','exclude-paid-cancelled-active','all-history-retained','dirty-date-protection','server-reread','double-confirmation','estimated-date-review','cancel-no-write','doubleclick-single-request','receipt-xlsx','lost-acknowledgement-identical-retry','permissions','desktop-mobile']},null,2));
  console.log('SETTLEMENT_FLOW_QA_PASS',assertions);
-}finally{await browser.close();await new Promise(r=>server.close(r));await pool.end();}
+}catch(e){if(page){await page.screenshot({path:path.join(outDir,'failure.png'),fullPage:true}).catch(()=>{});await fs.writeFile(path.join(outDir,'failure.txt'),String(e)+'\n'+await page.locator('body').textContent());}throw e;}
+finally{await browser.close();await new Promise(r=>server.close(r));await pool.end();}
