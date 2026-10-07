@@ -1,22 +1,17 @@
 {
-  "version": "2026.10.06-white-label.49",
-  "published_at": "2026-10-07T01:25:25.760792+00:00",
+  "version": "2026.10.06-white-label.50",
+  "published_at": "2026-10-07T03:04:45.234636+00:00",
   "status": "release",
   "files": [
     {
-      "path": "server/src/reports.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0214079d81af62ac8a4a0f2029da69337450b86c/release/payload/reports-dates-1/server/src/reports.js",
-      "sha256": "2cdf3c0e59b817c472135e3278ca983e441d24c60308c940a866ed04af86df8d"
-    },
-    {
       "path": "web/llanos-reports.js",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0214079d81af62ac8a4a0f2029da69337450b86c/release/payload/reports-dates-1/web/llanos-reports.js",
-      "sha256": "4ddf593628a873a6be859720333651b1dd234ef08bf3bb1f3a40b17faa6ed280"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/415c8eda69548105834b57e7b564231def728b86/release/payload/settlement-flow-1/web/llanos-reports.js",
+      "sha256": "2c6c76c648d393881af292d0a9544a53124c591951b1fb7171219f062fbb2c80"
     },
     {
       "path": "web/gohouse-panel.html",
-      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/0214079d81af62ac8a4a0f2029da69337450b86c/release/payload/reports-dates-1/web/gohouse-panel.html",
-      "sha256": "db8733621ea968ce21aa36228b16996d65fbeafe9c3ba81cf67b8856d04d8df3"
+      "url": "https://raw.githubusercontent.com/juansfer858/gohouse-prototipo/415c8eda69548105834b57e7b564231def728b86/release/payload/settlement-flow-1/web/gohouse-panel.html",
+      "sha256": "071d38869db300390e9634dd94cc9885683d5a77b1067eff4650e6c341bf6890"
     }
   ],
   "delete": [],
