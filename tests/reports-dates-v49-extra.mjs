@@ -76,7 +76,8 @@ export async function weekBrowserChecks({page,pool,base,fixture,check,outDir,Exc
   check(wb.getWorksheet('Resumen').getCell('B7').result===7,'Excel delivered count equals backend and UI');
   check(wb.getWorksheet('Por día').rowCount===12,'Excel daily sheet includes all seven dates');
   const stored=(await pool.query('SELECT data FROM app_state WHERE id=1')).rows[0].data;
-  check(JSON.stringify(stored['gohouse-data'].orders)===JSON.stringify(weekly['gohouse-data'].orders),'Consulting and exporting make no writes to order data');
+  assert.deepEqual(stored['gohouse-data'].orders,weekly['gohouse-data'].orders);
+  check(true,'Consulting and exporting make no writes to order data');
   await page.screenshot({path:path.join(outDir,'week-desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'Date range hint does not overflow on mobile');
