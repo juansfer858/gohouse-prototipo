@@ -1,0 +1,45 @@
+name: GoHouse driver reconciliation V51 isolated QA
+on:
+  push:
+    branches: [fix/llanos-driver-reconciliation-v51-20261010]
+    paths:
+      - 'release/payload/driver-reconciliation-v51/**'
+      - 'tests/driver-reconciliation-v51.cjs'
+      - '.github/workflows/driver-reconciliation-v51.yml'
+  pull_request:
+    branches: [gohouse-vps-recovery]
+    paths:
+      - 'release/payload/driver-reconciliation-v51/**'
+      - 'tests/driver-reconciliation-v51.cjs'
+      - '.github/workflows/driver-reconciliation-v51.yml'
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Code and panel version
+        run: |
+          node --check release/payload/driver-reconciliation-v51/server/src/reports.js
+          node --check release/payload/driver-reconciliation-v51/web/llanos-reports.js
+          grep -Fq '/llanos-reports.js?v=20261010.51' release/payload/driver-reconciliation-v51/web/gohouse-panel.html
+          if grep -Fq 'firebasejs' release/payload/driver-reconciliation-v51/web/gohouse-panel.html; then exit 1; fi
+      - name: Install isolated DOM test dependency
+        run: npm install --prefix "$RUNNER_TEMP/llanos-v51-dom" --ignore-scripts --no-audit --no-fund jsdom@26.1.0
+      - name: Financial invariants, active roster and orphan UI
+        run: |
+          mkdir -p release/payload/driver-reconciliation-v51/tests
+          NODE_PATH="$RUNNER_TEMP/llanos-v51-dom/node_modules" RECONCILIATION_PAYLOAD="$GITHUB_WORKSPACE/release/payload/driver-reconciliation-v51" node tests/driver-reconciliation-v51.cjs
+      - name: Keep isolated QA result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gohouse-v51-driver-reconciliation
+          path: release/payload/driver-reconciliation-v51/tests/qa-v51.json
+          if-no-files-found: ignore
+          retention-days: 14
