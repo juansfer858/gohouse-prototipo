@@ -1,0 +1,23 @@
+{
+  "version": "v51",
+  "passed": true,
+  "syntheticFixture": true,
+  "realProductionDataInspected": false,
+  "active": 2,
+  "orphanIds": 2,
+  "unassignedGroups": 1,
+  "orders": 7,
+  "readQueries": 4,
+  "productionWrites": 0,
+  "checks": [
+    "read model",
+    "backend rejected unlinked settlement",
+    "active-only selector",
+    "two main rows",
+    "orphan detail in separate section",
+    "no archived payout",
+    "active payout preview",
+    "general report preserves unlinked entries",
+    "historical data untouched"
+  ]
+}
